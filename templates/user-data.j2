@@ -1,0 +1,154 @@
+#jinja2: trim_blocks:False
+#cloud-config
+
+hostname: {{ user_data.system.hostname }}
+users:
+- name: {{ user_data.system.username }}
+  ssh_authorized_keys:
+  - {{ user_data.system.ssh_public_key }}
+  shell: /bin/bash
+  sudo: ALL=(ALL) NOPASSWD:ALL
+
+ssh_pwauth: false
+locale: en_US.UTF-8
+timezone: Asia/Tokyo
+mounts:
+  - [ tmpfs, /tmp, tmpfs, "defaults,noatime,size=256m,mode=1777", "0", "0" ]
+
+packages_update: true
+package_reboot_if_required: true
+packages:
+- hostapd
+- ifupdown
+- radvd
+- wide-dhcpv6-client
+
+write_files:
+- path: /etc/hostapd/hostapd.conf
+  content: |
+    interface=wlan0
+    bridge=br0
+    driver=nl80211
+
+    # log
+    logger_syslog=-1
+    logger_syslog_level=2
+    logger_stdout=-1
+    logger_stdout_level=2
+
+    hw_mode=a
+    channel={{ user_data.channel }}
+    ieee80211d=1
+    country_code=JP
+    ieee80211n=1
+
+    # 802.11ac support
+    ieee80211ac=1
+    wmm_enabled=1
+
+    ssid={{ user_data.wifi.ssid }}
+    auth_algs=1
+    wpa=2
+    wpa_key_mgmt=WPA-PSK
+    rsn_pairwise=CCMP
+    wpa_passphrase={{ user_data.wifi.passphrase }}
+
+- path: /etc/network/interfaces
+  content: |
+    source-directory /etc/network/interfaces.d
+    auto lo eth0 tun0 br0 wlan0 eth0.{{ user_data.ethernet.vsix_life_vlanid }}
+    iface lo       inet loopback
+    iface eth0     inet dhcp
+    iface eth0     inet6 auto
+    iface tun0     inet6 manual
+    iface br0      inet6 manual
+    iface wlan0    inet6 manual
+    iface eth0.{{ user_data.ethernet.vsix_life_vlanid }} inet6 manual
+
+- path: /etc/network/if-pre-up.d/vsix
+  permissions: '0755'
+  content: |
+    #!/bin/bash
+
+    REMOTE={{ user_data.tunnel.remote }}
+    LOCAL={{ user_data.tunnel.local }}
+
+    if [[ "$IFACE" == tun0 ]]; then
+      if ! /sbin/ip -6 tunnel show tun0; then
+        /sbin/ip -6 tunnel add tun0 mode ip6ip6 remote $REMOTE local $LOCAL
+      else
+        /sbin/ip -6 tunnel change tun0 mode ip6ip6 remote $REMOTE local $LOCAL
+      fi
+    elif [[ "$IFACE" == br0 ]]; then
+      if ! /sbin/ip link show br0; then
+        /sbin/ip link add name br0 type bridge
+      fi
+    fi
+
+- path: /etc/network/if-up.d/vsix
+  permissions: '0755'
+  content: |
+    #!/bin/bash
+
+    if [[ "$IFACE" == tun0 ]]; then
+      /sbin/ip -6 route add 2001:200:e20::2/128 dev tun0
+      if [[ -z "$(/sbin/ip -6 rule list iif br0)" ]] ; then
+        /sbin/ip -6 rule add iif br0 table 10000
+      fi
+      /sbin/ip -6 route add default via 2001:200:e20::2 table 10000
+    elif [[ "$IFACE" == br0 ]]; then
+      /sbin/ip link set dev wlan0 master br0
+      /sbin/ip link set dev eth0.{{ user_data.ethernet.vsix_life_vlanid }} master br0
+    fi
+
+- path: /etc/radvd.conf
+  content: |
+    interface br0 {
+      AdvSendAdvert on;
+      MinRtrAdvInterval 3;
+      MaxRtrAdvInterval 10;
+      prefix ::/64 {
+        AdvOnLink on;
+        AdvAutonomous on;
+        AdvRouterAddr on;
+        AdvValidLifetime 3600;
+        AdvPreferredLifetime 3600;
+      };
+      RDNSS 2001:200:e00:b11::6464 2001:4860:4860::6464 {
+      }; 
+    };
+
+- path: /etc/wide-dhcpv6/dhcp6c.conf
+  content: |
+    profile default
+    {
+      information-only;
+      request domain-name-servers;
+      request domain-name;
+      script  "/etc/wide-dhcpv6/dhcp6c-script";
+    };
+
+    interface tun0 {
+      send ia-pd 0;
+    };
+
+    id-assoc pd 0 {
+      prefix-interface br0 {
+        sla-len 4;
+        ifid 1;
+      };
+    };
+
+- path: /etc/default/wide-dhcpv6-client
+  content: |
+    INTERFACES="tun0"
+
+ntp:
+  enabled: true
+
+runcmd:
+- systemctl unmask hostapd && systemctl enable hostapd && systemctl start hostapd
+- systemctl enable networking && systemctl mask systemd-networkd.socket systemd-networkd.service systemd-networkd-wait-online networkd-dispatcher && systemctl stop systemd-networkd.socket systemd-networkd.service && systemctl restart networking
+- systemctl enable radvd && systemctl start radvd
+- systemctl enable wide-dhcpv6-client.service && systemctl start wide-dhcpv6-client.service
+- sed -i '/net.ipv6.conf.all.forwarding=1/s/^#//g' /etc/sysctl.conf && sysctl -p
