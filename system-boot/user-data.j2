@@ -1,12 +1,12 @@
+#jinja2: trim_blocks:False
 #cloud-config
 
-hostname: vsix-ce
+hostname: {{ hostname }}
 ssh_pwauth: false
 users:
-- name: hide
-  # ssh_import_id: gh:hdfln
+- name: {{ username }}
   ssh_authorized_keys:
-  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCv+xSfESojbW8pPQLLfFRD3/FA2tsTNTxQZkDft4ZbIOe+eezV6G9JEbynz2IxpMPHfv1pMa7cjotNDpLbwD1w1nmURWvN3tZP44MmfSGCXjMcq6499Ql8XZ54/U1p5S0XbchJUZOzEl71WrgfZqDcM9YWv9OX56JJIDjlU8XCHRW1BEfo+MQPDNykVHBNPtHiHEvEfQsn0x5C8XrrWeU4EVPao/v/BSi4aWF/hLJu3iJaHNhYx1m249mOt5rc0VHnM7u4cg87uFUMADTd0rmlEJO7COpwkGQuXbQSaL5ZExUO1ZrITdOHVRiH2aMBQTHpeFmPF6xMFRrSmSOfiGE3 denjj@DESKTOP-CHCLKIU
+  - {{ ssh_public_key }}
   shell: /bin/bash
   sudo: ALL=(ALL) NOPASSWD:ALL
 
@@ -19,7 +19,8 @@ packages:
 - wide-dhcpv6-client
 
 write_files:
-- content: |
+- path: /etc/hostapd/hostapd.conf
+  content: |
     interface=wlan0
     bridge=br0
     driver=nl80211
@@ -35,6 +36,7 @@ write_files:
     ieee80211d=1
     country_code=JP
     ieee80211n=1
+
     # 802.11ac support
     ieee80211ac=1
     wmm_enabled=1
@@ -45,31 +47,28 @@ write_files:
     wpa_key_mgmt=WPA-PSK
     rsn_pairwise=CCMP
     wpa_passphrase=raspberry
-  path: /etc/hostapd/hostapd.conf
-- content: |
+
+- path: /etc/network/interfaces
+  content: |
     source-directory /etc/network/interfaces.d
-
     auto lo eth0 eth0.102 tun0 br0 wlan0
-
-    iface lo inet loopback
-
-    iface eth0 inet dhcp
-    iface eth0 inet6 auto
+    iface lo       inet loopback
+    iface eth0     inet dhcp
+    iface eth0     inet6 auto
     iface eth0.102 inet6 manual
+    iface tun0     inet6 manual
+    iface br0      inet6 manual
+    iface wlan0    inet6 manual
 
-    iface tun0 inet6 manual
-
-    iface br0 inet6 manual
-
-    iface wlan0 inet6 manual
-  path: /etc/network/interfaces
-- content: |
+- path: /etc/network/if-pre-up.d/vsix
+  permissions: '0755'
+  content: |
     #!/bin/bash
 
     REMOTE=2408:211:40e0:1701::777
     LOCAL=2400:4051:bc0:400:dea6:32ff:fead:e549
 
-    if [ "$IFACE" = tun0 ]; then
+    if [[ "$IFACE" == tun0 ]]; then
       if ! /sbin/ip -6 tunnel show tun0; then
         /sbin/ip -6 tunnel add tun0 mode ip6ip6 remote $REMOTE local $LOCAL
         #/sbin/ip -6 tunnel add tun0 mode ip6ip6 remote $REMOTE local $LOCAL dev eth0
@@ -77,29 +76,30 @@ write_files:
         /sbin/ip -6 tunnel change tun0 mode ip6ip6 remote $REMOTE local $LOCAL
         #/sbin/ip -6 tunnel change tun0 mode ip6ip6 remote $REMOTE local $LOCAL dev eth0
       fi
-    elif [ "$IFACE" = br0 ]; then
+    elif [[ "$IFACE" == br0 ]]; then
       if ! /sbin/ip link show br0; then
         /sbin/ip link add name br0 type bridge
       fi
     fi
-  path: /etc/network/if-pre-up.d/vsix
+
+- path: /etc/network/if-up.d/vsix
   permissions: '0755'
-- content: |
+  content: |
     #!/bin/bash
 
-    if [ "$IFACE" = tun0 ]; then
+    if [ "$IFACE" == tun0 ]; then
       /sbin/ip -6 route add 2001:200:e20::2/128 dev tun0
       if [ -z "$(/sbin/ip -6 rule list iif br0)" ] ; then
         /sbin/ip -6 rule add iif br0 table 10000
       fi
       /sbin/ip -6 route add default via 2001:200:e20::2 table 10000
-    elif [ "$IFACE" = br0 ]; then
+    elif [ "$IFACE" == br0 ]; then
       /sbin/ip link set dev wlan0 master br0
       /sbin/ip link set dev eth0.102 master br0
     fi
-  path: /etc/network/if-up.d/vsix
-  permissions: '0755'
-- content: |
+
+- path: /etc/radvd.conf
+  content: |
     interface br0 {
       AdvSendAdvert on;
       MinRtrAdvInterval 3;
@@ -114,16 +114,15 @@ write_files:
       RDNSS 2001:200:e00:b11::6464 2001:4860:4860::6464 {
       }; 
     };
-  path: /etc/radvd.conf
-- content: |
+
+- path: /etc/wide-dhcpv6/dhcp6c.conf
+  content: |
     profile default
     {
       information-only;
-
       request domain-name-servers;
       request domain-name;
-
-      script "/etc/wide-dhcpv6/dhcp6c-script";
+      script  "/etc/wide-dhcpv6/dhcp6c-script";
     };
 
     interface tun0 {
@@ -136,18 +135,10 @@ write_files:
         ifid 1;
       };
     };
-  path: /etc/wide-dhcpv6/dhcp6c.conf
-- content: |
-    # Defaults for dhcpv6 client initscript
-    # Used by /etc/init.d/wide-dhcpv6-client
 
-    # Interfaces on which the client should send DHCPv6 requests and listen to
-    # answers. If empty, the client is deactivated.
+- path: /etc/default/wide-dhcpv6-client
+  content: |
     INTERFACES="tun0"
-
-    # Verbose level for syslog. Default is 0 (0: minimal; 1: info; 2: debug)
-    #VERBOSE=0
-  path: /etc/default/wide-dhcpv6-client
 
 ntp:
   enabled: true
