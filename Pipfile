@@ -12,4 +12,4 @@ pyyaml = "*"
 [requires]
 
 [scripts]
-render = 'python3 renderer.py'
+generate = 'python3 renderer.py'
