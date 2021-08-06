@@ -1,0 +1,16 @@
+network_config:
+
+user_data:
+  system:
+    hostname: vsixpi
+    username: vsix
+    ssh_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICf9XPsV3yxBsTlgmvWpulO2Z1V9gRW5XY+sJoxKfCm8
+  tunnel:
+    remote: 2408:211:40e0:1701::777
+    local: 2400:4051:bc0:400:dea6:32ff:fead:e549
+  wifi:
+    ssid: vsix
+    passphrase: Let me in!
+    channel: 48
+  ethernet:
+    vsix_life_vlanid: 102
