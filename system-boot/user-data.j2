@@ -1,12 +1,12 @@
 #jinja2: trim_blocks:False
 #cloud-config
 
-hostname: {{ hostname }}
+hostname: {{ user_data.system.hostname }}
 ssh_pwauth: false
 users:
-- name: {{ username }}
+- name: {{ user_data.system.username }}
   ssh_authorized_keys:
-  - {{ ssh_public_key }}
+  - {{ user_data.system.ssh_public_key }}
   shell: /bin/bash
   sudo: ALL=(ALL) NOPASSWD:ALL
 
@@ -32,7 +32,7 @@ write_files:
     logger_stdout_level=2
 
     hw_mode=a
-    channel=48
+    channel={{ user_data.channel }}
     ieee80211d=1
     country_code=JP
     ieee80211n=1
@@ -41,40 +41,39 @@ write_files:
     ieee80211ac=1
     wmm_enabled=1
 
-    ssid=vsix
+    ssid={{ user_data.wifi.ssid }}
     auth_algs=1
     wpa=2
     wpa_key_mgmt=WPA-PSK
     rsn_pairwise=CCMP
-    wpa_passphrase=raspberry
+    wpa_passphrase={{ user_data.wifi.passphrase }}
 
 - path: /etc/network/interfaces
   content: |
     source-directory /etc/network/interfaces.d
-    auto lo eth0 eth0.102 tun0 br0 wlan0
+    auto lo eth0 tun0 br0 wlan0 eth0.{{ user_data.ethernet.vsix_life_vlanid }}
     iface lo       inet loopback
     iface eth0     inet dhcp
     iface eth0     inet6 auto
-    iface eth0.102 inet6 manual
     iface tun0     inet6 manual
     iface br0      inet6 manual
     iface wlan0    inet6 manual
+
+    iface eth0.{{ user_data.ethernet.vsix_life_vlanid }} inet6 manual
 
 - path: /etc/network/if-pre-up.d/vsix
   permissions: '0755'
   content: |
     #!/bin/bash
 
-    REMOTE=2408:211:40e0:1701::777
-    LOCAL=2400:4051:bc0:400:dea6:32ff:fead:e549
+    REMOTE={{ user_data.tunnel.remote }}
+    LOCAL={{ user_data.tunnel.local }}
 
     if [[ "$IFACE" == tun0 ]]; then
       if ! /sbin/ip -6 tunnel show tun0; then
         /sbin/ip -6 tunnel add tun0 mode ip6ip6 remote $REMOTE local $LOCAL
-        #/sbin/ip -6 tunnel add tun0 mode ip6ip6 remote $REMOTE local $LOCAL dev eth0
       else
         /sbin/ip -6 tunnel change tun0 mode ip6ip6 remote $REMOTE local $LOCAL
-        #/sbin/ip -6 tunnel change tun0 mode ip6ip6 remote $REMOTE local $LOCAL dev eth0
       fi
     elif [[ "$IFACE" == br0 ]]; then
       if ! /sbin/ip link show br0; then
@@ -87,13 +86,13 @@ write_files:
   content: |
     #!/bin/bash
 
-    if [ "$IFACE" == tun0 ]; then
+    if [[ "$IFACE" == tun0 ]]; then
       /sbin/ip -6 route add 2001:200:e20::2/128 dev tun0
-      if [ -z "$(/sbin/ip -6 rule list iif br0)" ] ; then
+      if [[ -z "$(/sbin/ip -6 rule list iif br0)" ]] ; then
         /sbin/ip -6 rule add iif br0 table 10000
       fi
       /sbin/ip -6 route add default via 2001:200:e20::2 table 10000
-    elif [ "$IFACE" == br0 ]; then
+    elif [[ "$IFACE" == br0 ]]; then
       /sbin/ip link set dev wlan0 master br0
       /sbin/ip link set dev eth0.102 master br0
     fi
