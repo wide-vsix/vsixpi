@@ -1,9 +1,13 @@
 #!/usr/bin/python3
-from re import TEMPLATE
+"""
+Building cloud-config templates for vSIX Pi
+See: https://github.com/wide-vsix/cloud-config-vsixpi
+"""
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 import yaml
 import os
+import sys
 import glob
 
 BASE_PATH = os.path.dirname(__file__)
@@ -22,7 +26,11 @@ def main():
 
   params = None
   with open(PARAMETERS_PATH) as fd:
-    params = yaml.safe_load(fd)
+    try:
+      params = yaml.safe_load(fd)
+    except yaml.YAMLError as e:
+      print("Failed to parse params.yml:", e, file=sys.stderr)
+      sys.exit(1)
   
   for tpl_path in glob.glob(f"{TEMPLATES_BASE_PATH}/*.j2"):
     tpl_name = os.path.basename(tpl_path)
