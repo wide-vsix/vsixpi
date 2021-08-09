@@ -16,18 +16,28 @@ user_data:
       public_keys:
         - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICf9XPsV3yxBsTlgmvWpulO2Z1V9gRW5XY+sJoxKfCm8 mi2428
 
-  tunnels:
-    # Fujisawa via NGN - ngn.pe01.fujisawa
-    - remote: 2408:211:40e0:1701::777
-      local: 2001:db8::a:bad:cab1e
-    # Fujisawa via the internet - lo.pe01.fujisawa
-    - remote: 2001:200:e20::2
-      local: 2001:db8::a:bad:cab1e
+  tunnel:
+    # Specify the global address submitted to vSIX Portal as a customer endpoint
+    myself:
+      address: 2001:db8::a:bad:cab1e
+      length: 64
+    providers:
+      # Fujisawa via NGN - ngn.pe01.fujisawa
+      - endpoint: 2408:211:40e0:1701::777
+        prefix: 2001:200:e20:10::/60
+      # Fujisawa via the internet - lo.pe01.fujisawa
+      - endpoint: 2001:200:e20::2
+        prefix: 2001:200:e20:c0::/60
 
-  wifi:
-    ssid: VSIX-FREE-WIFI
-    passphrase: Adios,IPv4!
-    channel: 48
+  access_service:
+    wifi:
+      ssid: VSIX-FREE-WIFI
+      passphrase: Adios,IPv4!
+      channel: 48
 
-  ethernet:
-    vsix_life_vlanid: 200
+    ethernet:
+      vlan_id: 200
+
+    dns64_servers:
+      - 2001:200:e00:b11::6464
+      - 2001:4860:4860::6464
