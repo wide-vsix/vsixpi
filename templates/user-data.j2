@@ -20,6 +20,8 @@ users:
 ssh_pwauth: false
 locale: en_US.UTF-8
 timezone: Asia/Tokyo
+ntp:
+  enabled: true
 mounts:
 - [ tmpfs, /tmp, tmpfs, "defaults,noatime,size=256m,mode=1777", "0", "0" ]
 
@@ -31,11 +33,12 @@ packages:
 - radvd
 - wide-dhcpv6-client
 - tcpdump
-- netdata
 - iperf3
 - ndisc6
 - vnstat
 - vnstati
+- avahi-daemon
+
 
 write_files:
 - path: /etc/hostapd/hostapd.conf
@@ -182,13 +185,12 @@ write_files:
   content: |
     INTERFACES="eth0 {% for _ in user_data.tunnel.providers %}tun{{ loop.index }}{{ " " if not loop.last else "" }}{% endfor %}"
 
-ntp:
-  enabled: true
 
 runcmd:
-- systemctl unmask hostapd && systemctl enable hostapd && systemctl start hostapd
+- systemctl unmask hostapd && systemctl enable --now hostapd
 - systemctl enable networking && systemctl mask systemd-networkd.socket systemd-networkd.service systemd-networkd-wait-online networkd-dispatcher && systemctl stop systemd-networkd.socket systemd-networkd.service && systemctl restart networking
-- systemctl enable radvd && systemctl start radvd
-- systemctl enable wide-dhcpv6-client.service && systemctl start wide-dhcpv6-client.service
+- systemctl enable --now radvd
+- systemctl enable --now wide-dhcpv6-client
 - sed -i '/net.ipv6.conf.all.forwarding=1/s/^#//g' /etc/sysctl.conf && sysctl -p
+- systemctl enable --now avahi-daemon
 
