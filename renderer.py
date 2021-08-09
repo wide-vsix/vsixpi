@@ -5,6 +5,7 @@ See: https://github.com/wide-vsix/cloud-config-vsixpi
 """
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+import jinja2
 import yaml
 import os
 import sys
@@ -36,9 +37,17 @@ def main():
     tpl_name = os.path.basename(tpl_path)
     tpl = env.get_template(tpl_name)
     cfg_path = os.path.join(CONFIGS_BASE_PATH, tpl_name.split(".")[0])
-    with open(cfg_path, "w") as fd:
-      out = tpl.render(params)
-      fd.write(out)
+    
+    try:
+      with open(cfg_path, "w") as fd:
+        out = tpl.render(params)
+        fd.write(out)
+    except FileNotFoundError as e:
+      print("Template not found:", e, file=sys.stderr)
+      sys.exit(2)
+    except jinja2.exceptions.UndefinedError as e:
+      print("Broken params.yml:", e, file=sys.stderr)
+      sys.exit(3)
 
 
 if __name__ == "__main__":
