@@ -158,28 +158,20 @@ write_files:
 
       script "/etc/wide-dhcpv6/dhcp6c-script";
     };
+    {%- for _ in user_data.tunnel.providers %}
 
-    interface tun0 {
-      send ia-pd 0;
+    interface tun{{ loop.index0 }} {
+      send ia-pd {{ loop.index0 }};
     };
 
-    interface tun1 {
-      send ia-pd 1;
-    };
-
-    id-assoc pd 0 {
+    id-assoc pd {{ loop.index0 }} {
       prefix-interface br0 {
         sla-len 4;
         ifid 1;
       };
     };
 
-    id-assoc pd 1 {
-      prefix-interface br0 {
-        sla-len 4;
-        ifid 1;
-      };
-    };
+    {%- endfor %}
 
 - path: /etc/default/wide-dhcpv6-client
   content: |
