@@ -4,13 +4,30 @@ user_data:
   system:
     hostname: vsixpi
     username: vsix
-    ssh_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICf9XPsV3yxBsTlgmvWpulO2Z1V9gRW5XY+sJoxKfCm8
-  tunnel:
-    remote: 2408:211:40e0:1701::777
-    local: 2400:4051:bc0:400:dea6:32ff:fead:e549
+    # Default password is the WIDE standard (ENG VER.), you can generate another hash with:
+    #   $ mkpasswd --method=SHA-512 --rounds=4096
+    # The above would create from stdin an SHA-512 password hash with 4096 salt rounds.
+    password: $6$rounds=4096$PtmlQsZeoMBf58Zj$JEfy4U1lM6ztP7NX1EsnBLTeUUe/VBFgMofpG0lRyr4PdONjsQzc9cWSUfWGhed2dbtEZfTzFWtg3eS4xO3K1/
+    ssh_login:
+      # Write your public keys to SSH login - you must specify at least either
+      #   - `github_id`:   GitHub ID to import SSH key
+      #   - `public_keys`: List of ASCII strings
+      github_id: mi2428
+      public_keys:
+        - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICf9XPsV3yxBsTlgmvWpulO2Z1V9gRW5XY+sJoxKfCm8 mi2428
+
+  tunnels:
+    # Fujisawa via NGN - ngn.pe01.fujisawa
+    - remote: 2408:211:40e0:1701::777
+      local: 2001:db8::a:bad:cab1e
+    # Fujisawa via the internet - lo.pe01.fujisawa
+    - remote: 2001:200:e20::2
+      local: 2001:db8::a:bad:cab1e
+
   wifi:
-    ssid: vsix
-    passphrase: Let me in!
+    ssid: VSIX-FREE-WIFI
+    passphrase: Adios,IPv4!
     channel: 48
+
   ethernet:
-    vsix_life_vlanid: 102
+    vsix_life_vlanid: 200
