@@ -10,15 +10,16 @@ user_data:
     password: $6$rounds=4096$PtmlQsZeoMBf58Zj$JEfy4U1lM6ztP7NX1EsnBLTeUUe/VBFgMofpG0lRyr4PdONjsQzc9cWSUfWGhed2dbtEZfTzFWtg3eS4xO3K1/
     ssh_login:
       # Write your public keys to SSH login - you must specify at least either
-      #   - `github_id`:   GitHub ID to import SSH key
+      #   - `github_ids`:   GitHub IDs to import SSH key
       #   - `public_keys`: List of ASCII strings
-      github_id: mi2428
+      github_ids:
+        - mi2428
       public_keys:
         - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICf9XPsV3yxBsTlgmvWpulO2Z1V9gRW5XY+sJoxKfCm8 mi2428
 
   tunnel:
-    # Specify the global address submitted to vSIX Portal as a customer endpoint
     myself:
+      # Specify the global address submitted to vSIX Portal as a customer endpoint
       address: 2001:db8::a:bad:cab1e
       length: 64
     providers:
