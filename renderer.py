@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """
 Building cloud-config templates for vSIX Pi
-See: https://github.com/wide-vsix/cloud-config-vsixpi
+See: https://github.com/wide-vsix/cloud-init-vsixpi
 """
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -30,7 +30,7 @@ def yaml_validate(data):
 
 
 def main():
-  env = Environment(loader=FileSystemLoader(TEMPLATES_BASE_PATH, encoding="utf_8"))
+  env = Environment(loader=FileSystemLoader(TEMPLATES_BASE_PATH))
   env.filters["boolstr"] = boolstr
 
   params = None
