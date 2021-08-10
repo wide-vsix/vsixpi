@@ -21,6 +21,14 @@ def boolstr(boolean):
   return ["false", "true"][boolean]
 
 
+def yaml_validate(data):
+  try:
+    yaml.safe_load(data)
+  except yaml.YAMLError as e:
+    return False, e
+  return True, None
+
+
 def main():
   env = Environment(loader=FileSystemLoader(TEMPLATES_BASE_PATH, encoding="utf_8"))
   env.filters["boolstr"] = boolstr
@@ -36,11 +44,15 @@ def main():
   for tpl_path in glob.glob(f"{TEMPLATES_BASE_PATH}/*.j2"):
     tpl_name = os.path.basename(tpl_path)
     tpl = env.get_template(tpl_name)
-    cfg_path = os.path.join(CONFIGS_BASE_PATH, tpl_name.split(".")[0])
+    cfg_path = os.path.join(CONFIGS_BASE_PATH, ".".join(tpl_name.split(".")[:-1]))
     
     try:
       with open(cfg_path, "w") as fd:
         out = tpl.render(params)
+        ok, e = yaml_validate(out)
+        if not ok:
+          print(f"Failed to validate rendered config {cfg_path}:", e, file=sys.stderr)
+          sys.exit(254)
         fd.write(out)
     except FileNotFoundError as e:
       print("Template not found:", e, file=sys.stderr)
