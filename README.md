@@ -1,9 +1,11 @@
 # cloud-init-vsixpi
-
+Make your Raspberry Pi a vSIX access router with cloud-init.
 
 **NOTE:** This cloud-config is for Raspberry Pi - might work on other Ubuntu machines as well but not guaranteed.
 
 ## Specs of vSIX Pi
+vSIX Pi is a Raspberry Pi-based broadband router officially maintained by vSIX Project. It supports the following features as of August 11, 2021, making it easy for anyone to experience Internet access via vSIX - AS4690.
+
 - **Connect to vSIX directly through NGN** - no need to pay your ISP anymore
 - Use with wireless - your Pi becomes a Wi-Fi access point
 - Use with wired - support ethernet connection via tagged VLAN on the onboard NIC
@@ -29,7 +31,7 @@ First, shallow clone this repository and install dependent libraries with:
 % pipenv update
 ```
 
-Next, override the template variables adjusting with your environment. 
+Next, override the template variables adjusting with your environment. Follow the instructions in the comments.
 ```
 % cp vsixpi.yml.example vsixpi.yml
 % vim vsixpi.yml
@@ -43,10 +45,21 @@ Finally, build config templates - the outputs are in the `system-boot` directory
 ## Hints and tips
 Below are hints and tips for the advanced use of vSIX Pi.
 
-### Monitoring traffic
+### Traffic monitoring
 TBD
 
 ### Install additional USB NIC
+TBD
+
+## Notes
+Check [issues](https://github.com/wide-vsix/cloud-init-vsixpi/issues) and [pull requests](https://github.com/wide-vsix/cloud-init-vsixpi/pulls) as well.
+
+### Planned new features and upcoming releases
+
+- Support wireguard access service
+- Health check utilities
+
+### Known issues and workarounds
 TBD
 
 ## License
