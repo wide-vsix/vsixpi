@@ -14,7 +14,7 @@ import glob
 BASE_PATH = os.path.dirname(__file__)
 TEMPLATES_BASE_PATH = os.path.join(BASE_PATH, "templates")
 CONFIGS_BASE_PATH = os.path.join(BASE_PATH, "system-boot")
-PARAMETERS_PATH = os.path.join(BASE_PATH, "params.yml")
+PARAMETERS_PATH = os.path.join(BASE_PATH, "vsixpi.yml")
 
 
 def boolstr(boolean):
@@ -38,7 +38,7 @@ def main():
     try:
       params = yaml.safe_load(fd)
     except yaml.YAMLError as e:
-      print("Failed to parse params.yml:", e, file=sys.stderr)
+      print("Failed to parse vsixpi.yml:", e, file=sys.stderr)
       sys.exit(1)
   
   for tpl_path in glob.glob(f"{TEMPLATES_BASE_PATH}/*.j2"):
@@ -58,7 +58,7 @@ def main():
       print("Template not found:", e, file=sys.stderr)
       sys.exit(2)
     except jinja2.exceptions.UndefinedError as e:
-      print("Broken params.yml:", e, file=sys.stderr)
+      print("Broken vsixpi.yml:", e, file=sys.stderr)
       sys.exit(3)
 
 
