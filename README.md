@@ -1,12 +1,25 @@
 # cloud-init-vsixpi
 
 
-**NOTE:** This cloud-config is for Raspberry Pi - on other Ubuntu machines, it might work, but it is not guaranteed.
+**NOTE:** This cloud-config is for Raspberry Pi - might work on other Ubuntu machines as well but not guaranteed.
 
-## Brief introduction of vSIX Pi
+## Specs of vSIX Pi
+- **Connect to vSIX directly through NGN** - no need to pay your ISP anymore
+- Use with wireless - your Pi becomes a Wi-Fi access point
+- Use with wired - support ethernet connection via tagged VLAN on the onboard NIC
 
 ### Prerequisites
+Apply the Generic Tunneling Access Service from [vSIX Portal](https://portal.vsix.wide.ad.jp/), and get the IPv6 prefixes delegated. The following information is needed to set up; all of them are displayed on the vSIX Portal.
 
+- **Your global IPv6 address** - also needed for the prior submission
+- **IPv6 address of each tunnel provider**
+- **Delegated IPv6 prefixes**
+
+Prepare the Raspberry Pi. The authors tested using the series 4B+ with 2GB of RAM and 16GB of storage.
+
+- **Ubuntu Server 20.04 and later** installed on **series 4B and later**
+- More than **2GB** of RAM
+- More than **16GB** of SD card capacity
 
 ## Getting started with your Raspberry Pi
 First, shallow clone this repository and install dependent libraries with:
