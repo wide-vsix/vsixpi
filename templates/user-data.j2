@@ -7,7 +7,7 @@ ssh_pwauth: false
 users:
 - name: {{ user_data.system.username }}
   passwd: {{ user_data.system.password }}
-  lock_passwd: true
+  lock_passwd: false
   shell: /bin/bash
   sudo: ALL=(ALL) NOPASSWD:ALL
   {%- if user_data.system.ssh_login.github_ids is defined %}
