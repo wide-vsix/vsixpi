@@ -189,7 +189,7 @@ write_files:
 
 - path: /etc/default/wide-dhcpv6-client
   content: |
-    INTERFACES="eth0 {% for _ in user_data.tunnel.providers %}tun{{ loop.index }}{{ " " if not loop.last else "" }}{% endfor %}"
+    INTERFACES="eth0 {% for _ in user_data.tunnel.providers %}tun{{ loop.index0 }}{{ " " if not loop.last else "" }}{% endfor %}"
 
 
 bootcmd:
