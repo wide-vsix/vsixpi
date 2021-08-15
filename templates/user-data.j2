@@ -76,10 +76,6 @@ write_files:
     source-directory /etc/network/interfaces.d
     auto  lo
     iface lo       inet  loopback
-    auto  br0
-    iface br0      inet  manual
-    auto  wlan0
-    iface wlan0    inet  manual
 
     auto  eth0
     iface eth0     inet  dhcp
@@ -90,6 +86,11 @@ write_files:
 
     auto  eth0.{{ user_data.access_service.ethernet.vlan_id }}
     iface eth0.{{ user_data.access_service.ethernet.vlan_id }} inet6 manual
+
+    auto  br0
+    iface br0      inet  manual
+    auto  wlan0
+    iface wlan0    inet  manual
     {%- for _ in user_data.tunnel.providers %}
     auto  tun{{ loop.index0 }}
     iface tun{{ loop.index0 }}     inet6 manual
