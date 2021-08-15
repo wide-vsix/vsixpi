@@ -199,7 +199,7 @@ runcmd:
 - systemctl unmask hostapd && systemctl enable --now hostapd
 - systemctl enable networking && systemctl mask systemd-networkd.socket systemd-networkd.service systemd-networkd-wait-online networkd-dispatcher && systemctl stop systemd-networkd.socket systemd-networkd.service && systemctl restart networking
 - systemctl enable --now radvd
-- systemctl enable --now wide-dhcpv6-client
+- systemctl enable wide-dhcpv6-client && systemctl start wide-dhcpv6-client
 - systemctl enable --now avahi-daemon
 - |
     bash <<EOF
