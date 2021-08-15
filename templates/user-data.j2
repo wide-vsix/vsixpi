@@ -117,6 +117,10 @@ write_files:
       if ! /sbin/ip link show br0; then
         /sbin/ip link add name br0 type bridge
       fi
+    elif [[ "$IFACE" == eth0 ]]; then
+      if /sbin/ip -6 address show $IFACE | grep $LOCAL ; then
+        /sbin/ip -6 address delete $LOCAL/{{ user_data.tunnel.myself.length }} dev $IFACE
+      fi
     fi
 
 - path: /etc/network/if-up.d/vsix
