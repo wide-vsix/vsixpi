@@ -201,6 +201,9 @@ runcmd:
 - systemctl enable --now radvd
 - systemctl enable --now wide-dhcpv6-client
 - systemctl enable --now avahi-daemon
-- "bash <(curl -Ss https://my-netdata.io/kickstart.sh)"
+- |
+    bash <<EOF
+    bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait
+    EOF
 - ufw limit ssh && ufw allow 19999/tcp && ufw enable
 
