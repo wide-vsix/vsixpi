@@ -105,7 +105,7 @@ write_files:
     REMOTES=({% for provider in user_data.tunnel.providers %}"{{ provider.endpoint }}"{{ " " if not loop.last else "" }}{% endfor %})
     LOCAL="{{ user_data.tunnel.myself.address }}"
 
-    if [[ "$IFACE" =~ ^tun([[:digit:]]+) ]]; then
+    if [[ "$IFACE" =~ ^tun([[:digit:]]+)$ ]]; then
       TUN_ID=${BASH_REMATCH[1]}
       REMOTE=${REMOTES[$TUN_ID]}
       if ! /sbin/ip -6 tunnel show $IFACE; then
@@ -127,7 +127,7 @@ write_files:
     PREFIXES=({% for provider in user_data.tunnel.providers %}"{{ provider.prefix }}"{{ " " if not loop.last else "" }}{% endfor %})
     NEXTHOP="fe80::ea7:6"
 
-    if [[ "$IFACE" =~ ^tun([[:digit:]]+) ]]; then
+    if [[ "$IFACE" =~ ^tun([[:digit:]]+)$ ]]; then
       TUN_ID=${BASH_REMATCH[1]}
       PREFIX=${PREFIXES[$TUN_ID]}
       if [[ -z "$(/sbin/ip -6 rule list from $PREFIX)" ]] ; then
