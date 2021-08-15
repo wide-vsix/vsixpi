@@ -83,6 +83,7 @@ write_files:
       address      {{ user_data.tunnel.myself.address }}/{{ user_data.tunnel.myself.length }}
       autoconf     1
       accept_ra    2
+      dad-attempts 0
 
     auto  eth0.{{ user_data.access_service.ethernet.vlan_id }}
     iface eth0.{{ user_data.access_service.ethernet.vlan_id }} inet6 manual
