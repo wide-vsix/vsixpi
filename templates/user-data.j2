@@ -139,7 +139,6 @@ write_files:
       fi
       /sbin/ip -6 route add default via ${NEXTHOP} dev ${IFACE} table 1000${TUN_ID}
     elif [[ "$IFACE" == br0 ]]; then
-      /sbin/ip link set dev wlan0 master br0
       /sbin/ip link set dev eth0.{{ user_data.access_service.ethernet.vlan_id }} master br0
     fi
 
