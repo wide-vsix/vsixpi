@@ -204,5 +204,5 @@ runcmd:
     bash <<EOF
     bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait
     EOF
-- ufw limit ssh && ufw allow 19999/tcp && ufw enable
+- ufw limit ssh && {% for provider in user_data.tunnel.providers %}ufw allow proto tcp from {{ provider.prefix }} to any port 19999 && {% endfor %}{% for _ in user_data.tunnel.providers %}ufw route allow in on br0 out on tun{{ loop.index0 }} && {% endfor %}{% for _ in user_data.tunnel.providers %}ufw route allow in on tun{{ loop.index0 }} out on br0 && {% endfor %}ufw enable
 
