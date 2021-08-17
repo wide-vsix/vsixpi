@@ -134,8 +134,8 @@ write_files:
     if [[ "$IFACE" =~ ^tun([[:digit:]]+)$ ]]; then
       TUN_ID=${BASH_REMATCH[1]}
       PREFIX=${PREFIXES[$TUN_ID]}
-      if [[ -z "$(/sbin/ip -6 rule list from $PREFIX)" ]] ; then
-        /sbin/ip -6 rule add from $PREFIX table 1000${TUN_ID}
+      if [[ -z "$(/sbin/ip -6 rule list from $PREFIX iif br0 lookup 1000${TUN_ID})" ]] ; then
+        /sbin/ip -6 rule add from $PREFIX iif br0 table 1000${TUN_ID}
       fi
       /sbin/ip -6 route add default via ${NEXTHOP} dev ${IFACE} table 1000${TUN_ID}
     elif [[ "$IFACE" == br0 ]]; then
