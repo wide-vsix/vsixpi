@@ -137,6 +137,8 @@ write_files:
       if [[ -z "$(/sbin/ip -6 rule list from $PREFIX iif br0 lookup 1000${TUN_ID})" ]] ; then
         /sbin/ip -6 rule add from $PREFIX iif br0 table 1000${TUN_ID}
       fi
+        /sbin/ip6tables -t mangle -C POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400 ||
+        /sbin/ip6tables -t mangle -I POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400
       /sbin/ip -6 route add default via ${NEXTHOP} dev ${IFACE} table 1000${TUN_ID}
     elif [[ "$IFACE" == br0 ]]; then
       /sbin/ip link set dev eth0.{{ user_data.access_service.ethernet.vlan_id }} master br0
