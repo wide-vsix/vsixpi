@@ -109,9 +109,9 @@ write_files:
       TUN_ID=${BASH_REMATCH[1]}
       REMOTE=${REMOTES[$TUN_ID]}
       if ! /sbin/ip -6 tunnel show $IFACE; then
-        /sbin/ip -6 tunnel add $IFACE mode ip6ip6 remote $REMOTE local $LOCAL dev eth0
+        /sbin/ip -6 tunnel add $IFACE mode ip6ip6 remote $REMOTE local $LOCAL dev eth0 encaplimit none
       else
-        /sbin/ip -6 tunnel change $IFACE mode ip6ip6 remote $REMOTE local $LOCAL dev eth0
+        /sbin/ip -6 tunnel change $IFACE mode ip6ip6 remote $REMOTE local $LOCAL dev eth0 encaplimit none
       fi
     elif [[ "$IFACE" == br0 ]]; then
       if ! /sbin/ip link show br0; then
