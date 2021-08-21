@@ -190,7 +190,7 @@ write_files:
   content: |
     INTERFACES="eth0 {% for _ in user_data.tunnel.providers %}tun{{ loop.index0 }}{{ " " if not loop.last else "" }}{% endfor %}"
 
-- path: /var/tmp/cloud-init-runcmd-phase1.sh
+- path: /var/tmp/cloud-config-runcmd-phase1.sh
   permissions: '0744'
   owner: root
   content: |
@@ -205,14 +205,15 @@ write_files:
     systemctl enable wide-dhcpv6-client && systemctl start wide-dhcpv6-client
     systemctl enable --now avahi-daemon
 
-- path: /var/tmp/cloud-init-runcmd-phase2.sh
+- path: /var/tmp/cloud-config-runcmd-phase2.sh
   permissions: '0744'
   owner: root
   content: |
     #!/bin/bash -x
-    curl -s https://packagecloud.io/install/repositories/netdata/netdata/script.deb.sh | sudo bash
+    curl -s https://packagecloud.io/install/repositories/netdata/netdata/script.deb.sh | bash
+    apt install -y netdata
 
-- path: /var/tmp/cloud-init-runcmd-phase3.sh
+- path: /var/tmp/cloud-config-runcmd-phase3.sh
   permissions: '0744'
   owner: root
   content: |
