@@ -137,8 +137,8 @@ write_files:
       if [[ -z "$(/sbin/ip -6 rule list from $PREFIX iif br0 lookup 1000${TUN_ID})" ]] ; then
         /sbin/ip -6 rule add from $PREFIX iif br0 table 1000${TUN_ID}
       fi
-        /sbin/ip6tables -t mangle -C POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400 ||
-        /sbin/ip6tables -t mangle -I POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400
+      /sbin/ip6tables -t mangle -C POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400 ||
+      /sbin/ip6tables -t mangle -I POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400
       /sbin/ip -6 route add default via ${NEXTHOP} dev ${IFACE} table 1000${TUN_ID}
     elif [[ "$IFACE" == br0 ]]; then
       /sbin/ip link set dev eth0.{{ user_data.access_service.ethernet.vlan_id }} master br0
@@ -167,10 +167,8 @@ write_files:
   content: |
     interface eth0 {
       information-only;
-
       request domain-name-servers;
       request domain-name;
-
       script "/etc/wide-dhcpv6/dhcp6c-script";
     };
     {%- for _ in user_data.tunnel.providers %}
@@ -192,19 +190,49 @@ write_files:
   content: |
     INTERFACES="eth0 {% for _ in user_data.tunnel.providers %}tun{{ loop.index0 }}{{ " " if not loop.last else "" }}{% endfor %}"
 
+- path: /var/tmp/cloud-init-runcmd-phase1.sh
+  permissions: '0744'
+  owner: root
+  content: |
+    #!/bin/bash -x
+    systemctl unmask hostapd
+    systemctl enable --now hostapd
+    systemctl enable networking
+    systemctl mask systemd-networkd.socket systemd-networkd.service systemd-networkd-wait-online networkd-dispatcher
+    systemctl stop systemd-networkd.socket systemd-networkd.service
+    systemctl restart networking
+    systemctl enable --now radvd
+    systemctl enable wide-dhcpv6-client && systemctl start wide-dhcpv6-client
+    systemctl enable --now avahi-daemon
+
+- path: /var/tmp/cloud-init-runcmd-phase2.sh
+  permissions: '0744'
+  owner: root
+  content: |
+    #!/bin/bash -x
+    curl -s https://packagecloud.io/install/repositories/netdata/netdata/script.deb.sh | sudo bash
+
+- path: /var/tmp/cloud-init-runcmd-phase3.sh
+  permissions: '0744'
+  owner: root
+  content: |
+    #!/bin/bash -x
+    ufw limit ssh
+    {%- for provider in user_data.tunnel.providers %}
+    ufw allow proto tcp from {{ provider.prefix }} to any port 19999
+    {%- endfor %}
+    {%- for _ in user_data.tunnel.providers %}
+    ufw route allow in on br0 out on tun{{ loop.index0 }}
+    {%- endfor %}
+    {%- for _ in user_data.tunnel.providers %}
+    ufw route allow in on tun{{ loop.index0 }} out on br0
+    {%- endfor %}
+    ufw enable
 
 bootcmd:
 - sysctl net.ipv6.conf.all.forwarding=1
 
 runcmd:
-- systemctl unmask hostapd && systemctl enable --now hostapd
-- systemctl enable networking && systemctl mask systemd-networkd.socket systemd-networkd.service systemd-networkd-wait-online networkd-dispatcher && systemctl stop systemd-networkd.socket systemd-networkd.service && systemctl restart networking
-- systemctl enable --now radvd
-- systemctl enable wide-dhcpv6-client && systemctl start wide-dhcpv6-client
-- systemctl enable --now avahi-daemon
-- |
-    bash <<EOF
-    bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait
-    EOF
-- ufw limit ssh && {% for provider in user_data.tunnel.providers %}ufw allow proto tcp from {{ provider.prefix }} to any port 19999 && {% endfor %}{% for _ in user_data.tunnel.providers %}ufw route allow in on br0 out on tun{{ loop.index0 }} && {% endfor %}{% for _ in user_data.tunnel.providers %}ufw route allow in on tun{{ loop.index0 }} out on br0 && {% endfor %}ufw enable
-
+- /var/tmp/cloud-config-runcmd-phase1.sh
+- /var/tmp/cloud-config-runcmd-phase2.sh
+- /var/tmp/cloud-config-runcmd-phase3.sh
