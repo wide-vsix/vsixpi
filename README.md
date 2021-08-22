@@ -1,4 +1,4 @@
-# cloud-init-vsixpi
+# vsixpi
 Make your Raspberry Pi a vSIX access router with cloud-init.
 
 **NOTE:** This cloud-config is for Raspberry Pi - might work on other Ubuntu machines as well but not guaranteed.
@@ -25,6 +25,7 @@ Prepare the Raspberry Pi. The authors tested using the series 4B+ with 2GB of RA
 
 ## Getting started with your Raspberry Pi
 First, shallow clone this repository and install dependent libraries with:
+
 ```
 % git clone --depth 1 https://github.com/wide-vsix/cloud-init-vsixpi
 % cd cloud-init-vsixpi
@@ -32,12 +33,14 @@ First, shallow clone this repository and install dependent libraries with:
 ```
 
 Next, override the template variables adjusting with your environment. Follow the instructions in the comments.
+
 ```
 % cp vsixpi.yml.example vsixpi.yml
 % vim vsixpi.yml
 ```
 
 Finally, build config templates - the outputs are in the `system-boot` directory.
+
 ```
 % pipenv run generate
 ```
@@ -50,6 +53,7 @@ TBD
 
 ### Install additional USB NIC
 First, plug the USB-NIC and check its MAC address. Type the following to fix the interface name with MAC address `11:22:33:AA:BB:CC` to `usb1` by:
+
 ```
 % sudo cat <<EOF >> /etc/udev/rules.d/30-persistent-net.rules
 SUBSYSTEM=="net",ACTION=="add",ATTR{address}=="11:22:33:AA:BB:CC",NAME="usb1"
@@ -57,11 +61,13 @@ EOF
 ```
 
 Restart udev, then unplug and re-plug the USB-NIC. Check the interface name has changed expectedly.
+
 ```
 % sudo systemctl restart udev.service
 ```
 
 Edit `/etc/network/interfaces` to enable auto-start the USB-NIC. Note that the two lines you add here have to be written before `br0` statements.
+
 ```
 ...
 auto  usb1                   # Add here
@@ -73,6 +79,7 @@ iface br0      inet  manual
 ```
 
 Edit `/etc/network/if-up.d/vsix` to add the NIC to `br0`
+
 ```
 ...
 elif [[ "$IFACE" == br0 ]]; then
@@ -82,9 +89,13 @@ fi
 ```
 
 Finally, restart networking, and you can now connect vSIX via the USB-NIC.
+
 ```
 % sudo systemctl restart networking.service
 ```
+
+### 
+TBD
 
 ## Notes
 Check [issues](https://github.com/wide-vsix/cloud-init-vsixpi/issues) and [pull requests](https://github.com/wide-vsix/cloud-init-vsixpi/pulls) as well.
