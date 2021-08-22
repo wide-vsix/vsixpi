@@ -41,7 +41,6 @@ def main():
     except yaml.YAMLError as e:
       print("Failed to parse vsixpi.yml:", e, file=sys.stderr)
       sys.exit(1)
-  params["date"] = datetime.datetime.now().isoformat()
   
   for tpl_path in glob.glob(f"{TEMPLATES_BASE_PATH}/*.j2"):
     tpl_name = os.path.basename(tpl_path)

@@ -282,7 +282,7 @@ write_files:
 
 bootcmd:
 - sysctl net.ipv6.conf.all.forwarding=1
-- cloud-init-per once date -s {{ date }}
+- date -s $(curl "http://worldtimeapi.org/api/timezone/Asia/Tokyo.txt" | grep utc_datetime | cut -d " " -f 2)
 
 runcmd:
 - /var/tmp/cloud-config-runcmd-phase1.sh
