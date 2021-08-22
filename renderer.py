@@ -10,6 +10,7 @@ import yaml
 import os
 import sys
 import glob
+import argparse
 
 BASE_PATH = os.path.dirname(__file__)
 TEMPLATES_BASE_PATH = os.path.join(BASE_PATH, "templates")
@@ -21,24 +22,28 @@ def boolstr(boolean):
   return ["false", "true"][boolean]
 
 
-def yaml_validate(data):
+def validate_yaml(data, on_error=None):
   try:
-    yaml.safe_load(data)
+    d = yaml.safe_load(data)
   except yaml.YAMLError as e:
+    if on_error:
+      print(f"{on_error}:\n{e}", file=sys.stderr)
     return False, e
-  return True, None
+  else:
+    return True, d
+
+def apply_result():
+  pass
 
 
-def main():
+def renderer(reconf=False):
   env = Environment(loader=FileSystemLoader(TEMPLATES_BASE_PATH))
   env.filters["boolstr"] = boolstr
 
   params = None
   with open(PARAMETERS_PATH) as fd:
-    try:
-      params = yaml.safe_load(fd)
-    except yaml.YAMLError as e:
-      print("Failed to parse vsixpi.yml:", e, file=sys.stderr)
+    ok, params = validate_yaml(fd, on_error="Failed to parse vsixpi.yml")
+    if not ok:
       sys.exit(1)
   
   for tpl_path in glob.glob(f"{TEMPLATES_BASE_PATH}/*.j2"):
@@ -49,17 +54,25 @@ def main():
     try:
       with open(cfg_path, "w") as fd:
         out = tpl.render(params)
-        ok, e = yaml_validate(out)
+        ok, _ = validate_yaml(out, on_error=f"Failed to validate rendered config {cfg_path}")
         if not ok:
-          print(f"Failed to validate rendered config {cfg_path}:", e, file=sys.stderr)
           sys.exit(254)
         fd.write(out)
+
     except FileNotFoundError as e:
-      print("Template not found:", e, file=sys.stderr)
+      print(f"Template not found:\n{e}", file=sys.stderr)
       sys.exit(2)
+
     except jinja2.exceptions.UndefinedError as e:
-      print("Broken vsixpi.yml:", e, file=sys.stderr)
+      print(f"Broken vsixpi.yml:\n{e}", file=sys.stderr)
       sys.exit(3)
+
+
+def main():
+  parser = argparse.ArgumentParser(description="A helper utility to setup vSIX Pi - see wide-vsix/vsixpi at GitHub for details.")
+  parser.add_argument("--reconfigure", action="store_true", help="Reconfigure running vSIX Pi (default: False)")
+  args = parser.parse_args()
+  renderer(reconf=args.reconfigure)
 
 
 if __name__ == "__main__":
