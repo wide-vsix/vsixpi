@@ -62,18 +62,46 @@ write_files:
     pipenv update
     mv /var/tmp/vsixpi.yml vsixpi.yml
 
-- path: /etc/systemd/system/vsixpi-update-assistant.service
+- path: /etc/systemd/system/vsixpi-auto-upgrade.service
   content: |
     [Unit]
-    Description=vSIX Pi Update Assistant
+    Description=Perform force sync with github.com/wide-vsix/vsixpi
+
+    [Service]
+    Type=simple
+    WorkingDirectory=/var/lib/vsixpi
+    ExecStart=/usr/bin/git remote fetch origin && git reset --hard FETCH_HEAD
+
+    [Install]
+    WantedBy=multi-user.target
+
+- path: /etc/systemd/system/vsixpi-auto-upgrade.timer
+  content: |
+    [Unit]
+    Description=Perform force sync with github.com/wide-vsix/vsixpi every 20 minutes
+
+    [Timer]
+    OnUnitActiveSec=20m
+
+    [Install]
+    WantedBy=timer.target
+
+- path: /etc/systemd/system/vsixpi-auto-reconf.service
+  content: |
+    [Unit]
+    Description=Reconfigure vSIX Pi just before shutdown
+    Before=shutdown.target
 
     [Service]
     Type=oneshot
     RemainAfterExit=true
-    ExecStop=/var/lib/vsixpi/bin/assistant {{ "--upgrade" if user_data.update_assistant.auto_upgrade else "" }} {{ "--reconfigure" if user_data.update_assistant.auto_reconf else "" }} || true
+    WorkingDirectory=/var/lib/vsixpi
+    ExecStart=/bin/true
+    ExecStopPre=/usr/bin/pipenv update
+    ExecStop=/usr/bin/pipenv run reconfigure
 
     [Install]
-    WantedBy=multi=user.target
+    WantedBy=shutdown.target
 
 - path: /etc/hostapd/hostapd.conf
   content: |
@@ -260,6 +288,7 @@ write_files:
   permissions: '0744'
   content: |
     #!/bin/bash -x
+
     systemctl daemon-reload
     systemctl unmask hostapd
     systemctl enable --now hostapd
@@ -270,12 +299,19 @@ write_files:
     systemctl enable --now radvd
     systemctl enable wide-dhcpv6-client && systemctl start wide-dhcpv6-client
     systemctl enable --now avahi-daemon
-    systemctl enable --now vsix-update-assistant.service
+    {%- if user_data.maintenance.auto_upgrade %}
+    systemctl enable vsixpi-auto-upgrade.service
+    systemctl enable vsixpi-auto-upgrade.timer
+    {%- endif %}
+    {%- if user_data.maintenance.auto_reconf %}
+    systemctl enable vsixpi-auto-reconf.service
+    {%- endif %}
 
 - path: /var/tmp/cloud-config-runcmd-phase2.sh
   permissions: '0744'
   content: |
     #!/bin/bash -x
+
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
     echo "deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
     apt-get update
@@ -287,6 +323,7 @@ write_files:
   permissions: '0744'
   content: |
     #!/bin/bash -x
+
     ufw limit ssh
     {%- for provider in user_data.tunnel.providers %}
     ufw allow proto tcp from {{ provider.prefix }} to any port 19999
