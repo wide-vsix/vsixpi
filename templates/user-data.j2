@@ -301,12 +301,14 @@ write_files:
     systemctl enable --now radvd
     systemctl enable wide-dhcpv6-client && systemctl start wide-dhcpv6-client
     systemctl enable --now avahi-daemon
+    {%- if 'maintenance' in  user_data %}
     {%- if user_data.maintenance.auto_upgrade %}
     systemctl enable vsixpi-auto-upgrade.service
     systemctl enable vsixpi-auto-upgrade.timer
     {%- endif %}
     {%- if user_data.maintenance.auto_reconf %}
     systemctl enable vsixpi-auto-reconf.service
+    {%- endif %}
     {%- endif %}
 
 - path: /var/tmp/cloud-config-runcmd-phase2.sh
