@@ -232,6 +232,7 @@ write_files:
 
 bootcmd:
 - sysctl net.ipv6.conf.all.forwarding=1
+- date -s {{ date }}
 
 runcmd:
 - /var/tmp/cloud-config-runcmd-phase1.sh
