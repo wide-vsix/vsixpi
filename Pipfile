@@ -13,4 +13,4 @@ pyyaml = "*"
 
 [scripts]
 generate = 'python3 renderer.py'
-reconfigure = 'sudo python3 renderer.py --reconfigure'
+reconfigure = 'python3 renderer.py --reconfigure'

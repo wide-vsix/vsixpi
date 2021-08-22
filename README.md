@@ -86,6 +86,7 @@ elif [[ "$IFACE" == br0 ]]; then
   /sbin/ip link set dev eth0.200 master br0
   /sbin/ip link set dev usb1 master br0  # Add here
 fi
+...
 ```
 
 Finally, restart networking, and you can now connect vSIX via the USB-NIC.
@@ -93,9 +94,6 @@ Finally, restart networking, and you can now connect vSIX via the USB-NIC.
 ```
 % sudo systemctl restart networking.service
 ```
-
-### 
-TBD
 
 ## Notes
 Check [issues](https://github.com/wide-vsix/cloud-init-vsixpi/issues) and [pull requests](https://github.com/wide-vsix/cloud-init-vsixpi/pulls) as well.

@@ -25,13 +25,13 @@ def boolstr(boolean):
 
 def validate_yaml(data, on_error=None):
   try:
-    d = yaml.safe_load(data)
+    parsed = yaml.safe_load(data)
   except yaml.YAMLError as e:
     if on_error:
       print(f"{on_error}:\n{e}", file=sys.stderr)
     return False, e
   else:
-    return True, d
+    return True, parsed
 
 
 def provisioning(cloud_config):
@@ -49,11 +49,13 @@ def render(reconf=False):
   env = Environment(loader=FileSystemLoader(TEMPLATES_BASE_PATH))
   env.filters["boolstr"] = boolstr
 
-  params = None
+  vsixpi_yml, params = None, None
   with open(PARAMETERS_PATH) as fd:
-    ok, params = validate_yaml(fd, on_error="Failed to parse vsixpi.yml")
+    vsixpi_yml = fd.read()
+    ok, params = validate_yaml(vsixpi_yml, on_error="Failed to parse vsixpi.yml")
     if not ok:
       sys.exit(1)
+  params["vsixpi_yml"] = vsixpi_yml
 
   for tpl_path in glob.glob(f"{TEMPLATES_BASE_PATH}/*.j2"):
     tpl_name = os.path.basename(tpl_path)
