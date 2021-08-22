@@ -42,6 +42,12 @@ packages:
 - vnstat
 - vnstati
 - avahi-daemon
+- apt-transport-https
+- ca-certificates
+- curl
+- gnupg
+- lsb-release
+- python3-pip
 
 mounts:
 - [ tmpfs, /tmp, tmpfs, "defaults,noatime,size=256m,mode=1777", "0", "0" ]
@@ -190,6 +196,46 @@ write_files:
   content: |
     INTERFACES="eth0 {% for _ in user_data.tunnel.providers %}tun{{ loop.index0 }}{{ " " if not loop.last else "" }}{% endfor %}"
 
+- path: /var/netdata/docker-compose.yaml
+  permissions: '0744'
+  owner: root
+  content: |
+    version: '3'
+    services:
+      netdata:
+        image: netdata/netdata
+        container_name: netdata
+        hostname: example.com # set to fqdn of host
+        ports:
+          - 19999:19999
+        restart: unless-stopped
+        cap_add:
+          - SYS_PTRACE
+        security_opt:
+          - apparmor:unconfined
+        volumes:
+          - netdataconfig:/etc/netdata
+          - netdatalib:/var/lib/netdata
+          - netdatacache:/var/cache/netdata
+          - /etc/passwd:/host/etc/passwd:ro
+          - /etc/group:/host/etc/group:ro
+          - /proc:/host/proc:ro
+          - /sys:/host/sys:ro
+          - /etc/os-release:/host/etc/os-release:ro
+        networks:
+          - dualstack
+    volumes:
+      netdataconfig:
+      netdatalib:
+      netdatacache:
+    networks:
+      dualstack:
+        enable_ipv6: true
+          ipam:
+            config:
+              - subnet: fd00:4690::/64
+                gateway: fd00:4690::1
+
 - path: /var/tmp/cloud-config-runcmd-phase1.sh
   permissions: '0744'
   owner: root
@@ -210,8 +256,12 @@ write_files:
   owner: root
   content: |
     #!/bin/bash -x
-    curl -s https://packagecloud.io/install/repositories/netdata/netdata/script.deb.sh | bash
-    apt install -y netdata
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    echo "deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    apt-get update
+    apt-get install -y docker-ce docker-ce-cli containerd.io
+    pip3 install docker-compose
+    docker-compose -f /var/netdata/docker-compose.yaml up -d
 
 - path: /var/tmp/cloud-config-runcmd-phase3.sh
   permissions: '0744'
@@ -232,6 +282,7 @@ write_files:
 
 bootcmd:
 - sysctl net.ipv6.conf.all.forwarding=1
+- cloud-init-per once date -s {{ date }}
 
 runcmd:
 - /var/tmp/cloud-config-runcmd-phase1.sh
