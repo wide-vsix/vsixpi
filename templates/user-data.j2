@@ -222,10 +222,15 @@ write_files:
           - /proc:/host/proc:ro
           - /sys:/host/sys:ro
           - /etc/os-release:/host/etc/os-release:ro
+        networks:
+          - dualstack
     volumes:
       netdataconfig:
       netdatalib:
       netdatacache:
+    networks:
+      dualstack:
+        enable_ipv6: true
 
 - path: /var/tmp/cloud-config-runcmd-phase1.sh
   permissions: '0744'
