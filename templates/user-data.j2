@@ -59,6 +59,7 @@ write_files:
   content: |
     #!/bin/bash
     git clone https://github.com/wide-vsix/vsixpi /var/lib/vsixpi && cd /var/lib/vsixpi
+    pip3 install pipenv
     pipenv update
     mv /var/tmp/vsixpi.yml vsixpi.yml
 
@@ -70,7 +71,8 @@ write_files:
     [Service]
     Type=simple
     WorkingDirectory=/var/lib/vsixpi
-    ExecStart=/usr/bin/git remote fetch origin && git reset --hard FETCH_HEAD
+    ExecStartPre=/usr/bin/git fetch origin main
+    ExecStart=/usr/bin/git reset --hard FETCH_HEAD
 
     [Install]
     WantedBy=multi-user.target
@@ -90,18 +92,18 @@ write_files:
   content: |
     [Unit]
     Description=Reconfigure vSIX Pi just before shutdown
-    Before=shutdown.target
+    Before=poweroff.target halt.target shutdown.target reboot.target
 
     [Service]
     Type=oneshot
     RemainAfterExit=true
     WorkingDirectory=/var/lib/vsixpi
     ExecStart=/bin/true
-    ExecStopPre=/usr/bin/pipenv update
+    ExecStop=/usr/bin/pipenv update
     ExecStop=/usr/bin/pipenv run reconfigure
 
     [Install]
-    WantedBy=shutdown.target
+    WantedBy=multi-user.target
 
 - path: /etc/hostapd/hostapd.conf
   content: |
