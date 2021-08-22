@@ -10,7 +10,6 @@ import yaml
 import os
 import sys
 import glob
-import datetime
 
 BASE_PATH = os.path.dirname(__file__)
 TEMPLATES_BASE_PATH = os.path.join(BASE_PATH, "templates")
@@ -41,7 +40,6 @@ def main():
     except yaml.YAMLError as e:
       print("Failed to parse vsixpi.yml:", e, file=sys.stderr)
       sys.exit(1)
-  params["date"] = datetime.datetime.now().isoformat()
   
   for tpl_path in glob.glob(f"{TEMPLATES_BASE_PATH}/*.j2"):
     tpl_name = os.path.basename(tpl_path)
