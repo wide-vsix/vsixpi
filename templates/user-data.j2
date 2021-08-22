@@ -231,10 +231,10 @@ write_files:
     networks:
       dualstack:
         enable_ipv6: true
-          ipam:
-            config:
-              - subnet: fd00:4690::/64
-                gateway: fd00:4690::1
+        ipam:
+          config:
+            - subnet: fd00:4690::/64
+              gateway: fd00:4690::1
 
 - path: /var/tmp/cloud-config-runcmd-phase1.sh
   permissions: '0744'
