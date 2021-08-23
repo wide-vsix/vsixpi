@@ -288,7 +288,6 @@ write_files:
     INTERFACES="eth0 {% for _ in user_data.tunnel.providers %}tun{{ loop.index0 }}{{ " " if not loop.last else "" }}{% endfor %}"
 
 - path: /var/netdata/docker-compose.yaml
-  permissions: '0744'
   content: |
     version: '3'
     services:
