@@ -53,6 +53,16 @@ packages:
 mounts:
 - [ tmpfs, /tmp, tmpfs, "defaults,noatime,size=256m,mode=1777", "0", "0" ]
 
+bootcmd:
+- sysctl net.ipv6.conf.all.forwarding=1
+- date -s $(curl "http://worldtimeapi.org/api/timezone/Asia/Tokyo.txt" | grep utc_datetime | cut -d " " -f 2)
+
+runcmd:
+- /sbin/vsixpi-bootstrap
+- /var/tmp/cloud-config-runcmd-phase1.sh
+- /var/tmp/cloud-config-runcmd-phase2.sh
+- /var/tmp/cloud-config-runcmd-phase3.sh
+
 write_files:
 - path: /sbin/vsixpi-bootstrap
   permissions: '0744'
@@ -132,33 +142,37 @@ write_files:
   content: |
     source-directory /etc/network/interfaces.d
     auto  lo
-    iface lo       inet  loopback
+    iface lo        inet  loopback
 
     auto  eth0
-    iface eth0     inet  dhcp
-    iface eth0     inet6 static
-      address      {{ user_data.tunnel.myself.address }}
-      autoconf     1
-      accept_ra    2
-      dad-attempts 0
+    iface eth0      inet  dhcp
+    iface eth0      inet6 static
+      address       {{ user_data.tunnel.myself.address }}
+      autoconf      1
+      accept_ra     2
+      dad-attempts  0
 
-    auto  eth0.{{ user_data.access_service.ethernet.vlan_id }}
-    iface eth0.{{ user_data.access_service.ethernet.vlan_id }} inet6 manual
+    {%- if 'built_in' in user_data.access_service.ethernet %}
+    {%- if 'vlan_id' in user_data.access_service.ethernet.built_in %}
+    auto  eth0.{{ "%-4s"|format(user_data.access_service.ethernet.built_in.vlan_id) }}
+    iface eth0.{{ "%-4s"|format(user_data.access_service.ethernet.built_in.vlan_id) }} inet6 manual
+    {%- endif %}
+    {%- endif %}
 
-    {%- if 'usb_network_adapters' in user_data.access_service.ethernet %}
-    {%- for nic in user_data.access_service.ethernet.usb_network_adapters %}
-    auto  {{ "%-7s"|format(nic.alias) }}
-    iface {{ "%-7s"|format(nic.alias) }} inet  manual
+    {%- if 'usb_dapters' in user_data.access_service.ethernet %}
+    {%- for nic in user_data.access_service.ethernet.usb_adapters %}
+    auto  {{ "%-9s"|format(nic.alias) }}
+    iface {{ "%-9s"|format(nic.alias) }} inet  manual
     {%- endfor %}
     {%- endif %}
 
     auto  br0
-    iface br0      inet  manual
+    iface br0       inet  manual
     auto  wlan0
-    iface wlan0    inet  manual
+    iface wlan0     inet  manual
     {%- for _ in user_data.tunnel.providers %}
-    auto  tun{{ "%-4s"|format(loop.index0) }}
-    iface tun{{ "%-4s"|format(loop.index0) }} inet6 manual
+    auto  tun{{ "%-6s"|format(loop.index0) }}
+    iface tun{{ "%-6s"|format(loop.index0) }} inet6 manual
     {%- endfor %}
 
 - path: /etc/network/if-pre-up.d/vsix
@@ -205,10 +219,14 @@ write_files:
       /sbin/ip6tables -t mangle -I POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400
       /sbin/ip -6 route add default via ${NEXTHOP} dev ${IFACE} table 1000${TUN_ID}
     elif [[ "$IFACE" == br0 ]]; then
-      /sbin/ip link set dev eth0.{{ user_data.access_service.ethernet.vlan_id }} master br0
-      {%- if 'usb_network_adapters' in user_data.access_service.ethernet %}
-      {%- for nic in user_data.access_service.ethernet.usb_network_adapters %}
-      /sbin/ip link show dev {{ nic.aliaa }} && /sbin/ip link set dev {{ nic.alias }} master br0 || true
+      {%- if 'built_in' in user_data.access_service.ethernet %}
+      {%- if 'vlan_id' in user_data.access_service.ethernet.built_in %}
+      /sbin/ip link set dev eth0.{{ user_data.access_service.ethernet.built_in.vlan_id }} master br0
+      {%- endif %}
+      {%- endif %}
+      {%- if 'usb_adapters' in user_data.access_service.ethernet %}
+      {%- for nic in user_data.access_service.ethernet.usb_adapters %}
+      /sbin/ip link show dev {{ nic.alias }} && /sbin/ip link set dev {{ nic.alias }} master br0 || true
       {%- endfor %}
       {%- endif %}
     fi
@@ -297,15 +315,13 @@ write_files:
           config:
             - subnet: fd00:4690::/64
               gateway: fd00:4690::1
-
-{%- if 'usb_network_adapters' in user_data.access_service.ethernet %}
+{%+ if 'usb_adapters' in user_data.access_service.ethernet %}
 - path: /etc/udev/rules.d/30-persistent-net.rules
   content: |
-    {%- for nic in user_data.access_service.ethernet.usb_network_adapters %}
+    {%- for nic in user_data.access_service.ethernet.usb_adapters %}
     SUBSYSTEM=="net",ACTION=="add",ATTR{address}=="{{ nic.mac_address }}",NAME="{{ nic.alias }}"
     {%- endfor %}
-{%- endif %}
-
+{%+ endif %}
 - path: /var/tmp/cloud-config-runcmd-phase1.sh
   permissions: '0744'
   content: |
@@ -364,13 +380,3 @@ write_files:
 - path: /var/tmp/vsixpi.yml
   content: |
     {{ vsixpi_yml|indent }}
-
-bootcmd:
-- sysctl net.ipv6.conf.all.forwarding=1
-- date -s $(curl "http://worldtimeapi.org/api/timezone/Asia/Tokyo.txt" | grep utc_datetime | cut -d " " -f 2)
-
-runcmd:
-- /sbin/vsixpi-bootstrap
-- /var/tmp/cloud-config-runcmd-phase1.sh
-- /var/tmp/cloud-config-runcmd-phase2.sh
-- /var/tmp/cloud-config-runcmd-phase3.sh
