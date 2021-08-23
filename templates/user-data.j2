@@ -59,9 +59,9 @@ bootcmd:
 
 runcmd:
 - /sbin/vsixpi-bootstrap
-- /var/tmp/cloud-config-runcmd-phase1.sh
-- /var/tmp/cloud-config-runcmd-phase2.sh
-- /var/tmp/cloud-config-runcmd-phase3.sh
+- /sbin/vsixpi-post-installation-phase1
+- /sbin/vsixpi-post-installation-phase2
+- /sbin/vsixpi-post-installation-phase3
 
 write_files:
 - path: /sbin/vsixpi-bootstrap
@@ -152,14 +152,14 @@ write_files:
       accept_ra     2
       dad-attempts  0
 
-    {%- if 'built_in' in user_data.access_service.ethernet %}
+    {%- if user_data.access_service.ethernet and 'built_in' in user_data.access_service.ethernet %}
     {%- if 'vlan_id' in user_data.access_service.ethernet.built_in %}
     auto  eth0.{{ "%-4s"|format(user_data.access_service.ethernet.built_in.vlan_id) }}
     iface eth0.{{ "%-4s"|format(user_data.access_service.ethernet.built_in.vlan_id) }} inet6 manual
     {%- endif %}
     {%- endif %}
 
-    {%- if 'usb_dapters' in user_data.access_service.ethernet %}
+    {%- if user_data.access_service.ethernet and 'usb_adapters' in user_data.access_service.ethernet %}
     {%- for nic in user_data.access_service.ethernet.usb_adapters %}
     auto  {{ "%-9s"|format(nic.alias) }}
     iface {{ "%-9s"|format(nic.alias) }} inet  manual
@@ -197,7 +197,7 @@ write_files:
       fi
     elif [[ "$IFACE" == eth0 ]]; then
       if /sbin/ip -6 address show $IFACE | grep $LOCAL ; then
-        /sbin/ip -6 address delete $LOCAL/{{ user_data.tunnel.myself.length }} dev $IFACE
+        /sbin/ip -6 address delete {{ user_data.tunnel.myself.address }} dev $IFACE
       fi
     fi
 
@@ -219,16 +219,22 @@ write_files:
       /sbin/ip6tables -t mangle -I POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400
       /sbin/ip -6 route add default via ${NEXTHOP} dev ${IFACE} table 1000${TUN_ID}
     elif [[ "$IFACE" == br0 ]]; then
-      {%- if 'built_in' in user_data.access_service.ethernet %}
+      {%- if user_data.access_service.ethernet and 'built_in' in user_data.access_service.ethernet %}
       {%- if 'vlan_id' in user_data.access_service.ethernet.built_in %}
       /sbin/ip link set dev eth0.{{ user_data.access_service.ethernet.built_in.vlan_id }} master br0
       {%- endif %}
       {%- endif %}
-      {%- if 'usb_adapters' in user_data.access_service.ethernet %}
+      {%- if user_data.access_service.ethernet and 'usb_adapters' in user_data.access_service.ethernet %}
       {%- for nic in user_data.access_service.ethernet.usb_adapters %}
       /sbin/ip link show dev {{ nic.alias }} && /sbin/ip link set dev {{ nic.alias }} master br0 || true
       {%- endfor %}
       {%- endif %}
+    {%- if user_data.access_service.ethernet and 'usb_adapters' in user_data.access_service.ethernet %}
+    {%- for nic in user_data.access_service.ethernet.usb_adapters %}
+    elif [[ "$IFACE" == {{ nic.alias }} ]]; then
+      /sbin/ip link set dev {{ nic.alias }} master br0 || true
+    {%- endfor %}
+    {%- endif %}
     fi
 
 - path: /etc/radvd.conf
@@ -285,7 +291,6 @@ write_files:
       netdata:
         image: netdata/netdata
         container_name: netdata
-        hostname: example.com # set to fqdn of host
         ports:
           - 19999:19999
         restart: unless-stopped
@@ -315,14 +320,14 @@ write_files:
           config:
             - subnet: fd00:4690::/64
               gateway: fd00:4690::1
-{%+ if 'usb_adapters' in user_data.access_service.ethernet %}
+{%+ if user_data.access_service.ethernet and 'usb_adapters' in user_data.access_service.ethernet %}
 - path: /etc/udev/rules.d/30-persistent-net.rules
   content: |
     {%- for nic in user_data.access_service.ethernet.usb_adapters %}
     SUBSYSTEM=="net",ACTION=="add",ATTR{address}=="{{ nic.mac_address }}",NAME="{{ nic.alias }}"
     {%- endfor %}
 {%+ endif %}
-- path: /var/tmp/cloud-config-runcmd-phase1.sh
+- path: /sbin/vsixpi-post-installation-phase1
   permissions: '0744'
   content: |
     #!/bin/bash -x
@@ -348,7 +353,7 @@ write_files:
     {%- endif %}
     {%- endif %}
 
-- path: /var/tmp/cloud-config-runcmd-phase2.sh
+- path: /sbin/vsixpi-post-installation-phase2
   permissions: '0744'
   content: |
     #!/bin/bash -x
@@ -360,7 +365,7 @@ write_files:
     pip3 install docker-compose
     docker-compose -f /var/netdata/docker-compose.yaml up -d
 
-- path: /var/tmp/cloud-config-runcmd-phase3.sh
+- path: /sbin/vsixpi-post-installation-phase3
   permissions: '0744'
   content: |
     #!/bin/bash -x
