@@ -1,4 +1,4 @@
-![](https://imgur.com/AluMwI0)
+![](https://i.imgur.com/AluMwI0.png)
 
 # vSIX Pi
 [![](http://img.shields.io/github/license/wide-vsix/vsixpi)](LICENSE) [![](https://img.shields.io/github/issues/wide-vsix/vsixpi)](https://github.com/wide-vsix/vsixpi/issues) [![](https://img.shields.io/github/issues-pr/wide-vsix/vsixpi)](https://github.com/wide-vsix/vsixpi/pulls) [![](https://img.shields.io/github/last-commit/wide-vsix/vsixpi)](https://github.com/wide-vsix/vsixpi/commits) [![](https://img.shields.io/github/release/wide-vsix/vsixpi)](https://github.com/wide-vsix/vsixpi/releases)
@@ -28,7 +28,7 @@ Prepare a Raspberry Pi. The authors, vSIX Access Service Team, tested using the 
 - More than **2GB** of RAM
 - More than **16GB** of SD card capacity
 
-Thanks to the [cloud-init](https://cloudinit.readthedocs.io/en/latest/), installation and setup procedures are fully automated. All you have to do is *1)* edit a simple configuration file in YAML format and *2)* type a single command to generate cloud-config.
+Thanks to [cloud-init](https://cloudinit.readthedocs.io/en/latest/), installation and setup procedures are fully automated. All you have to do is *1)* edit a simple configuration file in YAML format and *2)* type a single command to generate cloud-config.
 
 ## Getting started with your Raspberry Pi
 First, shallow clone this repository and install dependent libraries with:
@@ -66,7 +66,9 @@ For macOS users, this is like the following:
 
 When the writing is completed, the SD card will be remounted as `system-boot`. Copy all the files under the `cloud-config` directory to this area.
 
-Connect LAN cable to the onboard NIC, insert the SD card, and turn on the power. `cloud-init` is called during the initial boot sequence, and this is why the first startup takes a long time - it is about 20 minutes in the author's environment, though it depends mainly on your ISP. Note that your Pi will automatically reboot once after the first powering during the `cloud-init` setup.
+Connect LAN cable to the onboard NIC, insert the SD card, and turn on the power. `cloud-init` is called during the initial boot sequence, and this is why the first startup takes a long time - it is about 20 minutes in the author's environment, though it depends mainly on your ISP. Note that your Pi will automatically reboot once during the `cloud-init` setup.
+
+You will see a Wi-Fi named VSIX-FREE-WIFI by default. If you connect it with `Adios,IPv4!`, RDNSS will complete the address configuration and ready you to experience the vSIX access service - of course, you can change the SSID and password. Let's test your connectivity at [test-ipv6.com](https://test-ipv6.com/)!
 
 ## Hints and tips
 Below are hints and tips for the advanced use of vSIX Pi.
@@ -74,17 +76,30 @@ Below are hints and tips for the advanced use of vSIX Pi.
 ### Traffic monitoring
 TBD
 
-### Install additional USB NIC
-TBD
-
 ### Reconfigure running vSIX Pi
-TBD
+The following updates can be applied by editing the `vsixpi.yml`.
+
+- Change CE address
+- Add or remove PE addresses - moving tunnels
+- Change SSID and password
+- Change VLAN ID of the onboard NIC for vSIX access network
+- Add or remove USB ethernet adapters
+- Add or remove DNS64 servers
+
+```
+% cd /var/lib/vsixpi
+% vim vsixpi.yml
+% sudo pipenv run reconfigure
+```
+
+**CAUTION:** This operation is destructive - it overwrites each configuration file, and any manual changes made to them will be lost.
 
 ## Notes
 Check [issues](https://github.com/wide-vsix/cloud-init-vsixpi/issues) and [pull requests](https://github.com/wide-vsix/cloud-init-vsixpi/pulls) as well.
 
 ### Planned new features and upcoming releases
-TBD
+
+- Health check utility
 
 ### Known issues and workarounds
 
