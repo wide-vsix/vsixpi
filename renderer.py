@@ -17,7 +17,7 @@ import yaml
 
 BASE_PATH = os.path.dirname(__file__)
 TEMPLATES_BASE_PATH = os.path.join(BASE_PATH, "templates")
-CONFIGS_BASE_PATH = os.path.join(BASE_PATH, "system-boot")
+CONFIGS_BASE_PATH = os.path.join(BASE_PATH, "cloud-config")
 PARAMETERS_PATH = os.path.join(BASE_PATH, "vsixpi.yml")
 
 CODE_MISSING_TEMPLATES = 10
