@@ -242,8 +242,8 @@ write_files:
         AdvOnLink on;
         AdvAutonomous on;
         AdvRouterAddr on;
-        AdvValidLifetime 3600;
-        AdvPreferredLifetime 3600;
+        AdvValidLifetime 30;
+        AdvPreferredLifetime 30;
       };
 
       RDNSS {% for address in user_data.access_service.dns64_servers %}{{ address }}{{ " " if not loop.last else "" }}{% endfor %} {
