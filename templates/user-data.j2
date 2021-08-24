@@ -315,7 +315,7 @@ write_files:
       netdataconfig:
       netdatalib:
       netdatacache:
-{%+ if user_data.access_service.ethernet and ser_data.access_service.ethernet.usb_adapters %}
+{%+ if user_data.access_service.ethernet and user_data.access_service.ethernet.usb_adapters %}
 - path: /etc/udev/rules.d/30-persistent-net.rules
   content: |
     {%- for nic in user_data.access_service.ethernet.usb_adapters %}
