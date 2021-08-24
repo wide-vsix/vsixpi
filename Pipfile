@@ -12,5 +12,5 @@ pyyaml = "*"
 [requires]
 
 [scripts]
-generate = 'python3 renderer.py'
+generate    = 'python3 renderer.py'
 reconfigure = 'python3 renderer.py --reconfigure'
