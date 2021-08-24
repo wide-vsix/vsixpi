@@ -232,11 +232,13 @@ write_files:
       {%- for nic in user_data.access_service.ethernet.usb_adapters %}
       /sbin/ip link show dev {{ nic.alias }} && /sbin/ip link set dev {{ nic.alias }} master br0 || true
       {%- endfor %}
+      {%- else %}
+      true
       {%- endif %}
     {%- if user_data.access_service.ethernet and user_data.access_service.ethernet.usb_adapters %}
     {%- for nic in user_data.access_service.ethernet.usb_adapters %}
     elif [[ "$IFACE" == {{ nic.alias }} ]]; then
-      /sbin/ip link set dev {{ nic.alias }} master br0 || true
+      /sbin/ip link show dev br0 && /sbin/ip link set dev {{ nic.alias }} master br0 || true
     {%- endfor %}
     {%- endif %}
     fi

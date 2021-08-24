@@ -77,7 +77,7 @@ Below are hints and tips for the advanced use of vSIX Pi.
 TBD
 
 ### Reconfigure running vSIX Pi
-The following updates can be applied by editing the `vsixpi.yml`.
+The following updates can be applied by editing the `vsixpi.yml`:
 
 - Change CE address
 - Add or remove PE addresses - moving tunnels
@@ -99,7 +99,7 @@ Check [issues](https://github.com/wide-vsix/cloud-init-vsixpi/issues) and [pull 
 
 ### Planned new features and upcoming releases
 
-- Health check utility
+- Health check utility to monitor vSIX Access Service
 
 ### Known issues and workarounds
 
