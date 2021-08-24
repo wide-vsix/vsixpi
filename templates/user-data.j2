@@ -10,13 +10,13 @@ users:
   lock_passwd: false
   shell: /bin/bash
   sudo: ALL=(ALL) NOPASSWD:ALL
-  {%- if user_data.system.ssh_login.github_ids is defined %}
+  {%- if user_data.system.ssh_login.github_ids %}
   ssh_import_id:
   {%- for github_id in user_data.system.ssh_login.github_ids %}
   - gh:{{ github_id }}
   {%- endfor %}
   {%- endif %}
-  {%- if user_data.system.ssh_login.public_keys is defined %}
+  {%- if user_data.system.ssh_login.public_keys %}
   ssh_authorized_keys:
   {%- for public_key in user_data.system.ssh_login.public_keys %}
   - {{ public_key }}
@@ -152,14 +152,14 @@ write_files:
       accept_ra     2
       dad-attempts  0
 
-    {%- if user_data.access_service.ethernet and 'built_in' in user_data.access_service.ethernet %}
-    {%- if 'vlan_id' in user_data.access_service.ethernet.built_in %}
+    {%- if user_data.access_service.ethernet and user_data.access_service.ethernet.built_in %}
+    {%- if user_data.access_service.ethernet.built_in.vlan_id %}
     auto  eth0.{{ "%-4s"|format(user_data.access_service.ethernet.built_in.vlan_id) }}
     iface eth0.{{ "%-4s"|format(user_data.access_service.ethernet.built_in.vlan_id) }} inet6 manual
     {%- endif %}
     {%- endif %}
 
-    {%- if user_data.access_service.ethernet and 'usb_adapters' in user_data.access_service.ethernet %}
+    {%- if user_data.access_service.ethernet and user_data.access_service.ethernet.usb_adapters %}
     {%- for nic in user_data.access_service.ethernet.usb_adapters %}
     auto  {{ "%-9s"|format(nic.alias) }}
     iface {{ "%-9s"|format(nic.alias) }} inet  manual
@@ -223,17 +223,17 @@ write_files:
         /sbin/ip -6 route add ${P} dev br0 table 1000${TUN_ID}
       done
     elif [[ "$IFACE" == br0 ]]; then
-      {%- if user_data.access_service.ethernet and 'built_in' in user_data.access_service.ethernet %}
-      {%- if 'vlan_id' in user_data.access_service.ethernet.built_in %}
+      {%- if user_data.access_service.ethernet and user_data.access_service.ethernet.built_in %}
+      {%- if user_data.access_service.ethernet.built_in.vlan_id %}
       /sbin/ip link set dev eth0.{{ user_data.access_service.ethernet.built_in.vlan_id }} master br0
       {%- endif %}
       {%- endif %}
-      {%- if user_data.access_service.ethernet and 'usb_adapters' in user_data.access_service.ethernet %}
+      {%- if user_data.access_service.ethernet and user_data.access_service.ethernet.usb_adapters %}
       {%- for nic in user_data.access_service.ethernet.usb_adapters %}
       /sbin/ip link show dev {{ nic.alias }} && /sbin/ip link set dev {{ nic.alias }} master br0 || true
       {%- endfor %}
       {%- endif %}
-    {%- if user_data.access_service.ethernet and 'usb_adapters' in user_data.access_service.ethernet %}
+    {%- if user_data.access_service.ethernet and user_data.access_service.ethernet.usb_adapters %}
     {%- for nic in user_data.access_service.ethernet.usb_adapters %}
     elif [[ "$IFACE" == {{ nic.alias }} ]]; then
       /sbin/ip link set dev {{ nic.alias }} master br0 || true
@@ -323,7 +323,7 @@ write_files:
           config:
             - subnet: fd00:4690::/64
               gateway: fd00:4690::1
-{%+ if user_data.access_service.ethernet and 'usb_adapters' in user_data.access_service.ethernet %}
+{%+ if user_data.access_service.ethernet and ser_data.access_service.ethernet.usb_adapters %}
 - path: /etc/udev/rules.d/30-persistent-net.rules
   content: |
     {%- for nic in user_data.access_service.ethernet.usb_adapters %}
@@ -346,7 +346,7 @@ write_files:
     systemctl enable --now radvd
     systemctl enable wide-dhcpv6-client && systemctl start wide-dhcpv6-client
     systemctl enable --now avahi-daemon
-    {%- if 'maintenance' in user_data %}
+    {%- if user_data.maintenance %}
     {%- if user_data.maintenance.auto_upgrade %}
     systemctl enable vsixpi-auto-upgrade.service
     systemctl enable vsixpi-auto-upgrade.timer
