@@ -296,9 +296,8 @@ write_files:
       netdata:
         image: netdata/netdata
         container_name: netdata
-        ports:
-          - 19999:19999
         restart: unless-stopped
+        network_mode: host
         cap_add:
           - SYS_PTRACE
         security_opt:
@@ -312,19 +311,10 @@ write_files:
           - /proc:/host/proc:ro
           - /sys:/host/sys:ro
           - /etc/os-release:/host/etc/os-release:ro
-        networks:
-          - dualstack
     volumes:
       netdataconfig:
       netdatalib:
       netdatacache:
-    networks:
-      dualstack:
-        enable_ipv6: true
-        ipam:
-          config:
-            - subnet: fd00:4690::/64
-              gateway: fd00:4690::1
 {%+ if user_data.access_service.ethernet and ser_data.access_service.ethernet.usb_adapters %}
 - path: /etc/udev/rules.d/30-persistent-net.rules
   content: |
