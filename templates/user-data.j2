@@ -117,6 +117,7 @@ write_files:
 
 - path: /etc/hostapd/hostapd.conf
   content: |
+    {%- if user_data.access_service.wifi %}
     interface=wlan0
     bridge=br0
     driver=nl80211
@@ -137,6 +138,7 @@ write_files:
     wpa_key_mgmt=WPA-PSK
     rsn_pairwise=CCMP
     wpa_passphrase={{ user_data.access_service.wifi.passphrase }}
+    {%- endif %}
 
 - path: /etc/network/interfaces
   content: |
@@ -330,8 +332,10 @@ write_files:
 
     systemctl daemon-reload
     systemctl restart udev
+    {%- if user_data.access_service.wifi %}
     systemctl unmask hostapd
     systemctl enable --now hostapd
+    {%- endif %}
     systemctl enable networking
     systemctl mask systemd-networkd.socket systemd-networkd.service systemd-networkd-wait-online networkd-dispatcher
     systemctl stop systemd-networkd.socket systemd-networkd.service
