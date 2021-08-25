@@ -2,51 +2,55 @@ network_config:
 
 user_data:
   system:
+    ## Set local-unique hostname, and you can connect your Pi by hostname.local (e.g., vsixpi.local)
+    ## Note that your OS has to support mDNS to resolve .local domain
     hostname: vsixpi
+
+    ## Default password is the WIDE standard (ENG VERSION) - you can generate another hash with:
+    ##   $ mkpasswd --method=SHA-512 --rounds=4096
+    ## The above would create from stdin an SHA-512 password hash with 4096 salt rounds
     username: vsix
-    # Default password is the WIDE standard (ENG VER.), you can generate another hash with:
-    #   $ mkpasswd --method=SHA-512 --rounds=4096
-    # The above would create from stdin an SHA-512 password hash with 4096 salt rounds.
     password: $6$rounds=4096$PtmlQsZeoMBf58Zj$JEfy4U1lM6ztP7NX1EsnBLTeUUe/VBFgMofpG0lRyr4PdONjsQzc9cWSUfWGhed2dbtEZfTzFWtg3eS4xO3K1/
+
+    ## Specify your public keys to SSH login
+    ## Password authentication via SSH is prohibited - you MUST specify at least either
+    ##  - GitHub IDs to import SSH key
+    ##  - List of ASCII strings
     ssh_login:
-      # Write your public keys to SSH login - you MUST specify at least either
-      #   - `github_ids`:  GitHub IDs to import SSH key
-      #   - `public_keys`: List of ASCII strings
-      github_ids:
-        - mi2428
+      #github_ids:
+      #  - mi2428
       public_keys:
         - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICf9XPsV3yxBsTlgmvWpulO2Z1V9gRW5XY+sJoxKfCm8 mi2428
 
   tunnel:
     myself:
-      # Specify the global address submitted to vSIX Portal as a customer endpoint
-      address: 2001:db8::a:bad:cab1e/64
+      ## Specify the global address submitted to vSIX Portal as a customer endpoint (CE)
+      ## This address must be of NGN if you intend to use vSIX as an ISP
+      address: 2405:6581:800:6c10:dea6:32ff:fead:e5a6/64
     providers:
-      # Fujisawa via the internet - lo.pe01.fujisawa
-      - endpoint: 2001:200:e20::2
-        prefix: 2001:200:e20:100::/60
-      # Fujisawa via the internet - ngn.pe01.fujisawa
-      - endpoint: 2408:211:40e0:1701::777
-        prefix: 2001:200:e20:110::/60
-      # Kote via the internet - lo.pe01.kote
-      - endpoint: 2001:200:e20::1
-        prefix: 2001:200:e20:120::/60
-      # Kote via WIDE - wide.pe01.kote
+      ## Site: Kote via WIDE - wide.pe01.kote
       - endpoint: 2001:200:0:1802:250:56ff:fe9c:662f
         prefix: 2001:200:e20:130::/60
-      # Note via the internet - lo.pe01.note
-      - endpoint: 2001:200:e20::3
-        prefix: 2001:200:e20:140::/60
-      # Note via WIDE - wide.pe01.note
+
+      ## Site: Note via WIDE - wide.pe01.note
       - endpoint: 2001:200:0:6002:250:56ff:fe9c:3493
         prefix: 2001:200:e20:150::/60
 
-  access_service:
-    wifi:
-      ssid: VSIX-FREE-WIFI
-      passphrase: Adios,IPv4!
-      channel: 48
+      ## Site: Fujisawa via the internet - ngn.pe01.fujisawa
+      - endpoint: 2408:211:40e0:1701::777
+        prefix: 2001:200:e20:110::/60
 
+  access_service:
+    ## Start Wi-Fi access point providing vSIX access network on the 11ac radio wave
+    ## Uncomment the following block, then edit SSID, passphrase, and channel, adjusting your environment
+    #wifi:
+    #  ssid: VSIX-FREE-WIFI
+    #  passphrase: Adios,IPv4!
+    #  channel: 48
+
+    ## Enable ethernet interface for vSIX access network
+    ##  - Create tagged VLAN interface on the built-in ethernet (eth0)
+    ##  - Install USB ethernet adapters on USB 3.0 port and connect through them
     #ethernet:
     #  built_in:
     #    vlan_id: 200
@@ -54,6 +58,8 @@ user_data:
     #    - alias: eth1
     #      mac_address: 00:0e:c6:62:80:60
 
+    ## Tune up RA and RDNSS
+    ## You shouldn't edit these parameters if you don't know what these are for
     router_adv:
       lifetime:
         valid: 14400
@@ -63,6 +69,7 @@ user_data:
         - 2001:4860:4860::6464
         - 2001:4860:4860::64
 
-  #maintenance:
-  #  auto_upgrade: yes
-  #  auto_reconf: yes
+  ## TBD
+  maintenance:
+    auto_upgrade: no
+    auto_reconf: no
