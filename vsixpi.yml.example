@@ -47,18 +47,22 @@ user_data:
       passphrase: Adios,IPv4!
       channel: 48
 
-    ethernet:
-      #built_in:
-      #  vlan_id: 200
-      usb_adapters:
-        - alias: eth1
-          mac_address: 00:0e:c6:62:80:60
+    #ethernet:
+    #  built_in:
+    #    vlan_id: 200
+    #  usb_adapters:
+    #    - alias: eth1
+    #      mac_address: 00:0e:c6:62:80:60
 
-    dns64_servers:
-      - 2001:200:e00:b11::6464
-      - 2001:4860:4860::6464
-      - 2001:4860:4860::64
+    router_adv:
+      lifetime:
+        valid: 14400
+        preferred: 3600
+      nameservers:
+        - 2001:200:e00:b11::6464
+        - 2001:4860:4860::6464
+        - 2001:4860:4860::64
 
-  maintenance:
-    auto_upgrade: yes
-    auto_reconf: yes
+  #maintenance:
+  #  auto_upgrade: yes
+  #  auto_reconf: yes
