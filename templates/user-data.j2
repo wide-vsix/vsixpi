@@ -298,7 +298,7 @@ write_files:
       netdata:
         image: netdata/netdata
         container_name: netdata
-        hostname: {{ user_data.system.hostname }}
+        hostname: {{ user_data.project.login_name | replace(" ", "_") }}-{{ user_data.system.hostname }}
         restart: unless-stopped
         network_mode: host
         cap_add:

@@ -1,11 +1,16 @@
 network_config:
 
 user_data:
+  project:
+    ## Set your login name of vSIX Portal
+    login_name: miya
+
   system:
     ## Set local-unique hostname, and you can connect your Pi by hostname.local (e.g., vsixpi.local)
     ## Note that your OS has to support mDNS to resolve .local domain
     hostname: vsixpi
 
+    ## Set login username and password
     ## Default password is the WIDE standard (ENG VERSION) - you can generate another hash with:
     ##   $ mkpasswd --method=SHA-512 --rounds=4096
     ## The above would create from stdin an SHA-512 password hash with 4096 salt rounds
@@ -26,19 +31,20 @@ user_data:
     myself:
       ## Specify the global address submitted to vSIX Portal as a customer endpoint (CE)
       ## This address must be of NGN if you intend to use vSIX as an ISP
+      ## Don't forget to add prefix length of your LAN - typically it's /64
       address: 2405:6581:800:6c10:dea6:32ff:fead:e5a6/64
     providers:
       ## Site: Kote via WIDE - wide.pe01.kote
       - endpoint: 2001:200:0:1802:250:56ff:fe9c:662f
-        prefix: 2001:200:e20:130::/60
+        prefix: 2001:200:e20:XXX::/60
 
       ## Site: Note via WIDE - wide.pe01.note
       - endpoint: 2001:200:0:6002:250:56ff:fe9c:3493
-        prefix: 2001:200:e20:150::/60
+        prefix: 2001:200:e20:YYY::/60
 
       ## Site: Fujisawa via the internet - ngn.pe01.fujisawa
       - endpoint: 2408:211:40e0:1701::777
-        prefix: 2001:200:e20:110::/60
+        prefix: 2001:200:e20:ZZZ::/60
 
   access_service:
     ## Start Wi-Fi access point providing vSIX access network on the 11ac radio wave
@@ -50,7 +56,7 @@ user_data:
 
     ## Enable ethernet interface for vSIX access network
     ##  - Create tagged VLAN interface on the built-in ethernet (eth0)
-    ##  - Install USB ethernet adapters on USB 3.0 port and connect through them
+    ##  - Install USB ethernet adapters on USB 3.0 ports and connect through them
     #ethernet:
     #  built_in:
     #    vlan_id: 200
