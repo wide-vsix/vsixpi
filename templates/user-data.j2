@@ -213,17 +213,17 @@ write_files:
 
     {%- for provider in user_data.tunnel.providers %}
     {% if not loop.first %}el{% endif %}if [[ "$IFACE" == tun-{{ provider.prefix.split(":")[3] }} ]]; then
-      TUN_ID={{ loop.index0 }}
+      TABLE_ID=1000{{ loop.index0 }}
       PREFIX={{ provider.prefix }}
-      if [[ -z "$(/sbin/ip -6 rule list from $PREFIX lookup 1000${TUN_ID})" ]]; then
-        /sbin/ip -6 rule add from $PREFIX table 1000${TUN_ID}
+      if [[ -z "$(/sbin/ip -6 rule list from $PREFIX lookup ${TABLE_ID})" ]]; then
+        /sbin/ip -6 rule add from $PREFIX table ${TABLE_ID}
       fi
       /sbin/ip6tables -t mangle -C POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400 ||
       /sbin/ip6tables -t mangle -I POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400
-      /sbin/ip -6 route flush table 1000${TUN_ID}
-      /sbin/ip -6 route add default via ${NEXTHOP} dev ${IFACE} table 1000${TUN_ID}
+      /sbin/ip -6 route flush table ${TABLE_ID}
+      /sbin/ip -6 route add default via ${NEXTHOP} dev ${IFACE} table ${TABLE_ID}
       for P in "${PREFIXES[@]}"; do
-        /sbin/ip -6 route add ${P} dev br0 table 1000${TUN_ID}
+        /sbin/ip -6 route add ${P} dev br0 table ${TABLE_ID}
       done
     {%- endfor %}
     elif [[ "$IFACE" == br0 ]]; then
