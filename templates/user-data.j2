@@ -173,8 +173,8 @@ write_files:
     auto  wlan0
     iface wlan0     inet  manual
     {%- for provider in user_data.tunnel.providers %}
-    auto  tun-{{ "%-6s"|format(provider.prefix.split(":")[3]) }}
-    iface tun-{{ "%-6s"|format(provider.prefix.split(":")[3]) }} inet6 manual
+    auto  tun-{{ "%-5s"|format(provider.prefix.split(":")[3]) }}
+    iface tun-{{ "%-5s"|format(provider.prefix.split(":")[3]) }} inet6 manual
     {%- endfor %}
 
 - path: /etc/network/if-pre-up.d/vsix
@@ -185,7 +185,7 @@ write_files:
     LOCAL="{{ user_data.tunnel.myself.address.split("/")[0] }}"
 
     {%- for provider in user_data.tunnel.providers %}
-    {% if not loop.first %}el{% endif %}if [[ "$IFACE" == tun-{{ provider.prefix.split(":")[3] }} ]]; then
+    {{ "if" if loop.first else "elif" }} [[ "$IFACE" == tun-{{ provider.prefix.split(":")[3] }} ]]; then
       REMOTE={{ provider.endpoint }}
       if ! /sbin/ip -6 tunnel show $IFACE; then
         /sbin/ip -6 tunnel add $IFACE mode ip6ip6 remote $REMOTE local $LOCAL dev eth0 encaplimit none
@@ -212,7 +212,7 @@ write_files:
     NEXTHOP="fe80::ea7:6"
 
     {%- for provider in user_data.tunnel.providers %}
-    {% if not loop.first %}el{% endif %}if [[ "$IFACE" == tun-{{ provider.prefix.split(":")[3] }} ]]; then
+    {{ "if" if loop.first else "elif" }} [[ "$IFACE" == tun-{{ provider.prefix.split(":")[3] }} ]]; then
       TABLE_ID=1000{{ loop.index0 }}
       PREFIX={{ provider.prefix }}
       if [[ -z "$(/sbin/ip -6 rule list from $PREFIX lookup ${TABLE_ID})" ]]; then
