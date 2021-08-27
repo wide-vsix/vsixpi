@@ -111,6 +111,7 @@ write_files:
     ExecStart=/bin/true
     ExecStop=/usr/bin/pipenv update
     ExecStop=/usr/bin/pipenv run reconfigure
+    ExecStop=/sbin/vsixpi-post-installation-phase3
 
     [Install]
     WantedBy=multi-user.target
@@ -387,6 +388,7 @@ write_files:
   permissions: '0744'
   content: |
     #!/bin/bash -x
+    ufw reset
     ufw limit ssh
     {%- for provider in user_data.tunnel.providers %}
     ufw allow proto tcp from {{ provider.prefix }} to any port 19999
