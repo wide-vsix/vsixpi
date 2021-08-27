@@ -172,9 +172,9 @@ write_files:
     iface br0       inet  manual
     auto  wlan0
     iface wlan0     inet  manual
-    {%- for _ in user_data.tunnel.providers %}
-    auto  tun{{ "%-6s"|format(loop.index0) }}
-    iface tun{{ "%-6s"|format(loop.index0) }} inet6 manual
+    {%- for provider in user_data.tunnel.providers %}
+    auto  tun-{{ "%-5s"|format(provider.prefix.split(":")[3]) }}
+    iface tun-{{ "%-5s"|format(provider.prefix.split(":")[3]) }} inet6 manual
     {%- endfor %}
 
 - path: /etc/network/if-pre-up.d/vsix
@@ -182,17 +182,17 @@ write_files:
   content: |
     #!/bin/bash
 
-    REMOTES=({% for provider in user_data.tunnel.providers %}"{{ provider.endpoint }}"{{ " " if not loop.last else "" }}{% endfor %})
     LOCAL="{{ user_data.tunnel.myself.address.split("/")[0] }}"
 
-    if [[ "$IFACE" =~ ^tun([[:digit:]]+)$ ]]; then
-      TUN_ID=${BASH_REMATCH[1]}
-      REMOTE=${REMOTES[$TUN_ID]}
+    {%- for provider in user_data.tunnel.providers %}
+    {{ "if" if loop.first else "elif" }} [[ "$IFACE" == tun-{{ provider.prefix.split(":")[3] }} ]]; then
+      REMOTE={{ provider.endpoint }}
       if ! /sbin/ip -6 tunnel show $IFACE; then
         /sbin/ip -6 tunnel add $IFACE mode ip6ip6 remote $REMOTE local $LOCAL dev eth0 encaplimit none
       else
         /sbin/ip -6 tunnel change $IFACE mode ip6ip6 remote $REMOTE local $LOCAL dev eth0 encaplimit none
       fi
+    {%- endfor %}
     elif [[ "$IFACE" == br0 ]]; then
       if ! /sbin/ip link show br0; then
         /sbin/ip link add name br0 type bridge
@@ -211,19 +211,21 @@ write_files:
     PREFIXES=({% for provider in user_data.tunnel.providers %}"{{ provider.prefix }}"{{ " " if not loop.last else "" }}{% endfor %})
     NEXTHOP="fe80::ea7:6"
 
-    if [[ "$IFACE" =~ ^tun([[:digit:]]+)$ ]]; then
-      TUN_ID=${BASH_REMATCH[1]}
-      PREFIX=${PREFIXES[$TUN_ID]}
-      if [[ -z "$(/sbin/ip -6 rule list from $PREFIX lookup 1000${TUN_ID})" ]]; then
-        /sbin/ip -6 rule add from $PREFIX table 1000${TUN_ID}
+    {%- for provider in user_data.tunnel.providers %}
+    {{ "if" if loop.first else "elif" }} [[ "$IFACE" == tun-{{ provider.prefix.split(":")[3] }} ]]; then
+      TABLE_ID=1000{{ loop.index0 }}
+      PREFIX={{ provider.prefix }}
+      if [[ -z "$(/sbin/ip -6 rule list from $PREFIX lookup ${TABLE_ID})" ]]; then
+        /sbin/ip -6 rule add from $PREFIX table ${TABLE_ID}
       fi
       /sbin/ip6tables -t mangle -C POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400 ||
       /sbin/ip6tables -t mangle -I POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400
-      /sbin/ip -6 route flush table 1000${TUN_ID}
-      /sbin/ip -6 route add default via ${NEXTHOP} dev ${IFACE} table 1000${TUN_ID}
+      /sbin/ip -6 route flush table ${TABLE_ID}
+      /sbin/ip -6 route add default via ${NEXTHOP} dev ${IFACE} table ${TABLE_ID}
       for P in "${PREFIXES[@]}"; do
-        /sbin/ip -6 route add ${P} dev br0 table 1000${TUN_ID}
+        /sbin/ip -6 route add ${P} dev br0 table ${TABLE_ID}
       done
+    {%- endfor %}
     elif [[ "$IFACE" == br0 ]]; then
       {%- if user_data.access_service.ethernet and user_data.access_service.ethernet.built_in %}
       {%- if user_data.access_service.ethernet.built_in.vlan_id %}
@@ -272,9 +274,9 @@ write_files:
       request domain-name;
       script "/etc/wide-dhcpv6/dhcp6c-script";
     };
-    {%- for _ in user_data.tunnel.providers %}
+    {%- for provider in user_data.tunnel.providers %}
 
-    interface tun{{ loop.index0 }} {
+    interface tun-{{ provider.prefix.split(":")[3] }} {
       send ia-pd {{ loop.index0 }};
     };
 
@@ -289,7 +291,7 @@ write_files:
 
 - path: /etc/default/wide-dhcpv6-client
   content: |
-    INTERFACES="eth0 {% for _ in user_data.tunnel.providers %}tun{{ loop.index0 }}{{ " " if not loop.last else "" }}{% endfor %}"
+    INTERFACES="eth0 {% for provider in user_data.tunnel.providers %}tun-{{ provider.prefix.split(":")[3] }}{{ " " if not loop.last else "" }}{% endfor %}"
 
 - path: /var/netdata/docker-compose.yaml
   content: |
@@ -374,11 +376,11 @@ write_files:
     {%- for provider in user_data.tunnel.providers %}
     ufw allow proto tcp from {{ provider.prefix }} to any port 19999
     {%- endfor %}
-    {%- for _ in user_data.tunnel.providers %}
-    ufw route allow in on br0 out on tun{{ loop.index0 }}
+    {%- for provider in user_data.tunnel.providers %}
+    ufw route allow in on br0 out on tun-{{ provider.prefix.split(":")[3] }}
     {%- endfor %}
-    {%- for _ in user_data.tunnel.providers %}
-    ufw route allow in on tun{{ loop.index0 }} out on br0
+    {%- for provider in user_data.tunnel.providers %}
+    ufw route allow in on tun-{{ provider.prefix.split(":")[3] }} out on br0
     {%- endfor %}
     ufw enable
 
