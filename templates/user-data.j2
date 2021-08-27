@@ -201,12 +201,13 @@ write_files:
       else
         /sbin/ip -6 tunnel change {{ tun_name }} mode ip6ip6 remote {{ remote_addr }} local {{ local_addr }} dev eth0 encaplimit none
       fi
-    {%- endfor %}
-    elif [[ "$IFACE" == br0 ]]; then
+    {% endfor %}
+    elif [[ "$IFACE" == "br0" ]]; then
       if ! /sbin/ip link show br0; then
         /sbin/ip link add name br0 type bridge
       fi
-    elif [[ "$IFACE" == eth0 ]]; then
+
+    elif [[ "$IFACE" == "eth0" ]]; then
       if /sbin/ip -6 address show eth0 | grep {{ local_addr }}; then
         /sbin/ip -6 address delete {{ user_data.tunnel.myself.address }} dev eth0
       fi
@@ -225,16 +226,16 @@ write_files:
       {%- set table_id = "1000" ~ loop.index0 %}
       {%- set prefix = provider.prefix %}
       if [[ -z "$(/sbin/ip -6 rule list from {{ prefix }} lookup {{ table_id }})" ]]; then
-        /sbin/ip -6 rule add from $PREFIX table {{ table_id }}
+        /sbin/ip -6 rule add from {{ prefix }} table {{ table_id }}
       fi
       /sbin/ip6tables -t mangle -C POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400 ||
       /sbin/ip6tables -t mangle -I POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400
       /sbin/ip -6 route flush table {{ table_id }}
       /sbin/ip -6 route add default via fe80::ea7:6 dev {{ tun_name }} table {{ table_id }}
-      {%- for provider in user_data.tunnel.providers %}
-      /sbin/ip -6 route add {{ provider.prefix }} dev br0 table {{ table_id }}
+      {%- for p in user_data.tunnel.providers %}
+      /sbin/ip -6 route add {{ p.prefix }} dev br0 table {{ table_id }}
       {%- endfor %}
-    {%- endfor %}
+    {% endfor %}
     elif [[ "$IFACE" == br0 ]]; then
       {%- if user_data.access_service.ethernet and user_data.access_service.ethernet.built_in %}
       {%- if user_data.access_service.ethernet.built_in.vlan_id %}
