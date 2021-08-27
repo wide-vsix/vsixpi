@@ -196,19 +196,19 @@ write_files:
     {%- set tun_name = "tun-" ~ provider.prefix.split(":")[3] %}
     {{ "if" if loop.first else "elif" }} [[ "$IFACE" == "{{ tun_name }}" ]]; then
       {%- set remote_addr = provider.endpoint %}
-      if ! /sbin/ip -6 tunnel show {{ tun_name }} 1> /dev/null 2>&1; then
+      if ! /sbin/ip -6 tunnel show {{ tun_name }} 1>/dev/null 2>&1; then
         /sbin/ip -6 tunnel add {{ tun_name }} mode ip6ip6 remote {{ remote_addr }} local {{ local_addr }} dev eth0 encaplimit none
       else
         /sbin/ip -6 tunnel change {{ tun_name }} mode ip6ip6 remote {{ remote_addr }} local {{ local_addr }} dev eth0 encaplimit none
       fi
     {% endfor %}
     elif [[ "$IFACE" == "br0" ]]; then
-      if ! /sbin/ip link show br0; then
+      if ! /sbin/ip link show br0 1>/dev/null 2>&1; then
         /sbin/ip link add name br0 type bridge
       fi
 
     elif [[ "$IFACE" == "eth0" ]]; then
-      if /sbin/ip -6 address show eth0 | grep {{ local_addr }}; then
+      if /sbin/ip -6 address show eth0 | grep {{ local_addr }} 1>/dev/null 2>&1; then
         /sbin/ip -6 address delete {{ user_data.tunnel.myself.address }} dev eth0
       fi
     fi
