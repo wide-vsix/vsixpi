@@ -231,8 +231,8 @@ write_files:
       if [[ -z "$(/sbin/ip -6 rule list from {{ prefix }} lookup {{ table_id }})" ]]; then
         /sbin/ip -6 rule add from {{ prefix }} table {{ table_id }}
       fi
-      /sbin/ip6tables -t mangle -C POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400 ||
-      /sbin/ip6tables -t mangle -I POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1400
+      /sbin/ip6tables -t mangle -C POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1360 ||
+      /sbin/ip6tables -t mangle -I POSTROUTING -p tcp --tcp-flags SYN,RST SYN -o $IFACE -j TCPMSS --set-mss 1360
       /sbin/ip -6 route flush table {{ table_id }}
       /sbin/ip -6 route add default via fe80::ea7:6 dev {{ tun_name }} table {{ table_id }}
       {%- for p in user_data.tunnel.providers %}
