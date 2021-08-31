@@ -75,6 +75,11 @@ user_data:
         - 2001:4860:4860::6464
         - 2001:4860:4860::64
 
+    ## MTU and MSS-clamp
+    ## CAUTION: Don't edit unless you know exactly what you're doing
+    mtu: 1460
+    mss: 1360
+
   ## TBD
   maintenance:
     auto_upgrade: no
