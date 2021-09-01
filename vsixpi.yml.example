@@ -19,7 +19,7 @@ user_data:
 
     ## Specify your public keys to SSH login
     ## Password authentication via SSH is prohibited - you MUST specify at least either
-    ##  - GitHub IDs to import SSH key
+    ##  - GitHub IDs to import SSH keys
     ##  - List of ASCII strings
     ssh_login:
       #github_ids:
@@ -32,40 +32,47 @@ user_data:
       ## Specify the global address submitted to vSIX Portal as a customer endpoint (CE)
       ## This address must be of NGN if you intend to use vSIX as an ISP
       ## Don't forget to add prefix length of your LAN - typically it's /64
-      address: 2405:6581:800:6c10:dea6:32ff:fead:e5a6/64
+      address: 2403:4440:ffff:208:62a4:4cff:fe3f:48a6/64
     providers:
+      ## Site: Fujisawa via NGN (fujisawa-flets) - ngn.pe01.fujisawa
+      - endpoint: 2408:211:40e0:1701::777
+        prefix: 2001:200:e20:XXX::/60
+
+      ## Site: Kote via NGN (elab-flets) - ngn.pe01.kote
+      - endpoint: 2001:200:e20::1
+        prefix: 2001:200:e20:YYY::/60
+
       ## Site: Kote via WIDE - wide.pe01.kote
       - endpoint: 2001:200:0:1802:250:56ff:fe9c:662f
-        prefix: 2001:200:e20:XXX::/60
+        prefix: 2001:200:e20:ZZZ::/60
 
       ## Site: Note via WIDE - wide.pe01.note
       - endpoint: 2001:200:0:6002:250:56ff:fe9c:3493
-        prefix: 2001:200:e20:YYY::/60
-
-      ## Site: Fujisawa via the internet - ngn.pe01.fujisawa
-      - endpoint: 2408:211:40e0:1701::777
-        prefix: 2001:200:e20:ZZZ::/60
+        prefix: 2001:200:e20:WWW::/60
 
   access_service:
-    ## Start Wi-Fi access point providing vSIX access network on the 11ac radio wave
+    ## Start Wi-Fi access point providing vSIX access network on the 11n/ac radio wave
     ## Uncomment the following block, then edit SSID, passphrase, and channel, adjusting your environment
-    #wifi:
-    #  ssid: VSIX-FREE-WIFI
-    #  passphrase: Adios,IPv4!
-    #  channel: 48
+    ## CAUTION: 11ac is only supported by the series 3B+ and later, not by 3B
+    wifi:
+      ssid: VSIX-FREE-WIFI
+      passphrase: Adios,IPv4!
+      channel: 48
+      use_11ac: yes
 
-    ## Enable ethernet interface for vSIX access network
-    ##  - Create tagged VLAN interface on the built-in ethernet (eth0)
-    ##  - Install USB ethernet adapters on USB 3.0 ports and connect through them
+    ## Setup Ethernet interfaces to connect vSIX
+    ## Following two methods are supported. Uncomment the below blocks as you needed
+    ##  - Create tagged VLAN interface on the built-in Ethernet (eth0)
+    ##  - Install USB Ethernet adapters on USB 3.0 ports and connect through them
     #ethernet:
-    #  built_in:
-    #    vlan_id: 200
+    #  #built_in:
+    #  #  vlan_id: 200
     #  usb_adapters:
     #    - alias: eth1
     #      mac_address: 00:0e:c6:62:80:60
 
-    ## Tune up RA and RDNSS
-    ## You shouldn't edit these parameters if you don't know what these are for
+    ## Tune up RA related parameters
+    ## CAUTION: You shouldn't edit here if you don't know what these are for
     router_adv:
       lifetime:
         valid: 14400
@@ -75,12 +82,12 @@ user_data:
         - 2001:4860:4860::6464
         - 2001:4860:4860::64
 
-    ## MTU and MSS-clamp
-    ## CAUTION: Don't edit unless you know exactly what you're doing
+    ## Tune up MTU and TCP MSS Clamping
+    ## WARNING: DO NOT EDIT unless you know exactly what you're doing
     mtu: 1460
     mss: 1360
 
   ## TBD
-  maintenance:
-    auto_upgrade: no
-    auto_reconf: no
+  #maintenance:
+  #  auto_upgrade: no
+  #  auto_reconf: no
