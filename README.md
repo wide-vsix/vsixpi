@@ -103,7 +103,7 @@ Remember to reboot after the reconfiguration; otherwise, system will be unstable
 
 ```
 % cd /var/lib/vsixpi
-% vim vsixpi.yml
+% sudo vim vsixpi.yml
 % sudo pipenv run reconfigure
 % sudo reboot
 ```
