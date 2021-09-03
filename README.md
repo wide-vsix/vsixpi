@@ -15,6 +15,8 @@ vSIX Pi is a Raspberry Pi-based broadband router officially maintained by vSIX P
 - Use with wireless - your Pi become a fast Wi-Fi access point supporting 11n/ac
 - Use with wired - support Ethernet connection via additional USB NICs or tagged VLAN on the onboard NIC
 
+**You need to be a member of vSIX Working Group** - read [our website](https://www.vsix.wide.ad.jp/) carefully and get the invitation from us.
+
 ### Prerequisites
 Apply the Generic Tunneling Access Service from [vSIX Portal](https://portal.vsix.wide.ad.jp/), and get the IPv6 prefixes delegated. The following information is needed to set up vSIX Pi; all of them are displayed on the Portal.
 
@@ -53,8 +55,8 @@ Finally, build the cloud-config templates - the outputs are in the `cloud-config
 % bat cloud-config/user-data -l yaml
 ```
 
-### For noobs
-Download the latest Ubuntu Server from [here](https://ubuntu.com/download/raspberry-pi) - the LTS release is recommended, but it is totally up to you. Then extract .xz archive and burn your SD card.
+### For newbies
+Download the latest Ubuntu Server from [here](https://ubuntu.com/download/raspberry-pi) - the LTS release is recommended, but totally up to you. Then extract `.xz` archive and burn your SD card.
 
 For macOS users, this is like the following:
 
@@ -67,11 +69,13 @@ For macOS users, this is like the following:
 
 When the writing is completed, the SD card will be remounted as `system-boot`. Copy all the files under the `cloud-config` directory to this area and overwrite the default cloud-config.
 
-Connect LAN cable to the onboard NIC, insert the SD card, and turn on the power. cloud-init is called during the initial boot sequence, and this is why the first startup takes a relatively long time - it is about 30 minutes in the author's environment, though it depends mainly on your network bandwidth. Note that your Pi will automatically reboot once during the cloud-init setup. Wait until the console is entirely silent.
+Connect LAN cable to the onboard NIC, insert the SD card, and turn on the power. cloud-init is called during the initial boot sequence, and this is why the first startup takes a relatively long time - it is about 30 minutes in the author's environment, though it depends mainly on your network bandwidth. Note that your Pi will automatically reboot once during the cloud-init setup. Hang tight until the console is entirely silent.
 
-You will see a Wi-Fi named VSIX-FREE-WIFI by default. If you connect it with `Adios,IPv4!`, RDNSS will complete the address configuration and ready you to experience the vSIX access service - of course, you can change the SSID and password. Welcome to vSIX; let's test your connectivity at [test-ipv6.com](https://test-ipv6.com/)!
+You will see a Wi-Fi named VSIX-FREE-WIFI by default. If you connect it with `Adios,IPv4!`, RDNSS will complete the address configuration and ready you to experience the vSIX access service - of course, you can change the SSID and password. Welcome to vSIX! Let's test your connectivity at [test-ipv6.com](https://test-ipv6.com/).
 
 **FYI:** [iNonius Project](https://inonius.net/) provides the speed test service for both IPv4 and IPv6.
+
+If you need further assistance, don't hesitate to ask questions at [#helpme](https://app.slack.com/client/T022V857XM4/C02DBTWM0JX) of our Slack. The vSIX developers will support you one by one for any kind of request.
 
 ## Hints and tips from vSIX developers
 Below are hints and tips for the advanced use of vSIX Pi.
@@ -97,9 +101,9 @@ The following updates can be applied by editing the `vsixpi.yml`:
 - Change CE address and PE addresses - discarding or moving tunnels
 - Change SSID, passphrase, and radio channel
 - Change VLAN ID of the onboard NIC, install or uninstall USB Ethernet adapters
-- Change RA related parameters as well as MTU and MSS-clamp
+- Change RA related parameters as well as MTU and TCP MSS Clamping
 
-Remember to reboot after the reconfiguration; otherwise, system will be unstable or some configuration will not applied appropriately.
+Remember to reboot after the reconfiguration; otherwise, the system will be unstable, or some configuration will not be applied appropriately.
 
 ```
 % cd /var/lib/vsixpi
@@ -120,7 +124,7 @@ Check [issues](https://github.com/wide-vsix/cloud-init-vsixpi/issues) and [pull 
 
 ### Known issues and workarounds
 
-- Currently, the auto-reconfiguration feature doesn't work. We're trying to fix the bugs, and kindly follow the above [manual reconfigure procedure](https://github.com/wide-vsix/vsixpi#reconfigure-running-vsix-pi) for the time being
+- Currently, the auto-reconfiguration feature doesn't work. We're trying to fix the bugs, and kindly follow the above [manual reconfigure procedure](https://github.com/wide-vsix/vsixpi#reconfigure-your-vsix-pi-after-cloud-init) for the time being
 
 ## Maintainers
 This repository is maintained by the vSIX Access Service Team and supported by many volunteers. Followings are responsible for reviewing pull requests:
