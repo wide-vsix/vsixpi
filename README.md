@@ -25,7 +25,7 @@ Apply the Generic Tunneling Access Service from [vSIX Portal](https://portal.vsi
 Prepare a Raspberry Pi. The authors, the vSIX Access Service Team, tested using the series 4B with 2GB of RAM and 16GB of storage. It might also work with the series 3B, although Wi-Fi and Ethernet performance would be degraded - check  [hardware specifications](https://en.wikipedia.org/wiki/Raspberry_Pi#Specifications) of your Pi. In summary, the minimum system requirements are as follows:
 
 - **Ubuntu Server 20.04 and later** installed on **series 3B and later**
-- More than **2GB** of RAM
+- More than **1GB** of RAM
 - More than **16GB** of SD card capacity
 
 Thanks to [cloud-init](https://cloudinit.readthedocs.io/en/latest/), installation and setup procedures are fully automated. All you have to do is *1)* edit a simple configuration file in YAML format and *2)* type a single command to generate cloud-config.
