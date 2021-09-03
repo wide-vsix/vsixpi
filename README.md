@@ -22,7 +22,7 @@ Apply the Generic Tunneling Access Service from [vSIX Portal](https://portal.vsi
 - **IPv6 addresses of each tunnel provider** - provider endpoint (PE) addresses
 - **Delegated IPv6 prefixes of each site** - `/60` of address space is allocated for every PE
 
-Prepare a Raspberry Pi. The authors, the vSIX Access Service Team, tested using the series 4B+ with 2GB of RAM and 16GB of storage. It might also work with the series 3B, although Wi-Fi and Ethernet performance would be degraded - check  [hardware specifications](https://en.wikipedia.org/wiki/Raspberry_Pi#Specifications) of your Pi. In summary, the minimum system requirements are as follows:
+Prepare a Raspberry Pi. The authors, the vSIX Access Service Team, tested using the series 4B with 2GB of RAM and 16GB of storage. It might also work with the series 3B, although Wi-Fi and Ethernet performance would be degraded - check  [hardware specifications](https://en.wikipedia.org/wiki/Raspberry_Pi#Specifications) of your Pi. In summary, the minimum system requirements are as follows:
 
 - **Ubuntu Server 20.04 and later** installed on **series 3B and later**
 - More than **2GB** of RAM
