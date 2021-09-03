@@ -26,7 +26,7 @@ Prepare a Raspberry Pi. The authors, the vSIX Access Service Team, tested using 
 
 - **Ubuntu Server 20.04 and later** installed on **series 3B and later**
 - More than **1GB** of RAM
-- More than **16GB** of SD card capacity
+- More than **8GB** of SD card capacity
 
 Thanks to [cloud-init](https://cloudinit.readthedocs.io/en/latest/), installation and setup procedures are fully automated. All you have to do is *1)* edit a simple configuration file in YAML format and *2)* type a single command to generate cloud-config.
 
