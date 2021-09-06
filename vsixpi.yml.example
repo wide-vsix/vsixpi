@@ -87,7 +87,10 @@ user_data:
     mtu: 1460
     mss: 1360
 
-  ## TBD
-  #maintenance:
-  #  auto_upgrade: no
-  #  auto_reconf: no
+  maintenance:
+    ## Regenerate and overwrite all configs every poweroff to keep the desired settings
+    ## For those who are not familiar with Linux and will never touch anything other than vsixpi.yml
+    ## CAUTION: All manually edited configs will be lost by shutdown
+    auto_reconf: no
+    ## Force sync with github.com/wide-vsix/vsixpi periodically
+    auto_upgrade: no
