@@ -114,6 +114,14 @@ Remember to reboot after the reconfiguration; otherwise, the system will be unst
 
 **CAUTION:** This operation is destructive - it overwrites each configuration file, and any manual changes made to them will be lost.
 
+If you need to regenerate all configurations every before shutdown automatically, use `auto_reconf: yes` in `vsixpi.yml` and type:
+
+```
+% sudo systemctl enable --now vsixpi-auto-reconf.service
+```
+
+This option is advantageous if you don't know much about Linux and don't want to touch anything but `vsixpi.yml`.
+
 ## Announcements
 Check [issues](https://github.com/wide-vsix/cloud-init-vsixpi/issues) and [pull requests](https://github.com/wide-vsix/cloud-init-vsixpi/pulls) as well.
 
@@ -124,7 +132,7 @@ Check [issues](https://github.com/wide-vsix/cloud-init-vsixpi/issues) and [pull 
 
 ### Known issues and workarounds
 
-- Currently, the auto-reconfiguration feature doesn't work. We're trying to fix the bugs, and kindly follow the above [manual reconfigure procedure](https://github.com/wide-vsix/vsixpi#reconfigure-your-vsix-pi-after-cloud-init) for the time being
+- ~~Currently, the auto-reconfiguration feature doesn't work. We're trying to fix the bugs, and kindly follow the above [manual reconfigure procedure](https://github.com/wide-vsix/vsixpi#reconfigure-your-vsix-pi-after-cloud-init) for the time being~~ Fixed by [Pull Request #11](https://github.com/wide-vsix/vsixpi/pull/11) and available in [v21.09.06](https://github.com/wide-vsix/vsixpi/releases/tag/21.09.06) and later releases
 
 ## Maintainers
 This repository is maintained by the vSIX Access Service Team and supported by many volunteers. Followings are responsible for reviewing pull requests:
