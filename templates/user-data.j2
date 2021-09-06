@@ -102,15 +102,15 @@ write_files:
   content: |
     [Unit]
     Description=Reconfigure vSIX Pi just before shutdown
-    Before=poweroff.target halt.target shutdown.target reboot.target
+    Wants=network.target
+    After=network.target
 
     [Service]
     Type=oneshot
     RemainAfterExit=true
     WorkingDirectory=/var/lib/vsixpi
-    ExecStart=/bin/true
-    ExecStop=/usr/bin/pipenv update
-    ExecStop=/usr/bin/pipenv run reconfigure
+    ExecStop=/usr/local/bin/pipenv update
+    ExecStop=/usr/local/bin/pipenv run reconfigure
     ExecStop=/sbin/vsixpi-post-installation-phase3
 
     [Install]
@@ -368,11 +368,11 @@ write_files:
     systemctl enable --now avahi-daemon
     {%- if user_data.maintenance %}
     {%- if user_data.maintenance.auto_upgrade %}
-    systemctl enable vsixpi-auto-upgrade.service
-    systemctl enable vsixpi-auto-upgrade.timer
+    systemctl enable --now vsixpi-auto-upgrade.service
+    systemctl enable --now vsixpi-auto-upgrade.timer
     {%- endif %}
     {%- if user_data.maintenance.auto_reconf %}
-    systemctl enable vsixpi-auto-reconf.service
+    systemctl enable --now vsixpi-auto-reconf.service
     {%- endif %}
     {%- endif %}
 
@@ -391,14 +391,14 @@ write_files:
   permissions: '0744'
   content: |
     #!/bin/bash -x
-    ufw reset
+    ufw --force reset
     ufw limit ssh
     {%- for provider in user_data.tunnel.providers %}
     ufw allow proto tcp from {{ provider.prefix }} to any port 19999
     ufw route allow in on br0 out on tun-{{ provider.prefix.split(":")[3] }}
     ufw route allow in on tun-{{ provider.prefix.split(":")[3] }} out on br0
     {%- endfor %}
-    ufw enable
+    ufw --force enable
 
 - path: /var/tmp/vsixpi.yml
   content: |
